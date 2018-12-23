@@ -1,0 +1,2579 @@
+info[4]
+info<-Sys.info()
+info
+info[4]
+substr(info[4],1,5)
+rm(list = ls(all=TRUE))#
+gc()#
+#
+# sim or real data?#
+#dada<-'sim'#
+dada<-'real'#
+#
+# threshold species? true/false, upper & lower limit#
+#thresh_sp<-list("TRUE",0.05,0.95)#
+#thresh_sp2<-list("TRUE",0.005,0.995)#
+# select all species#
+thresh_sp<-list("FALSE")#
+thresh_sp2<-list("FALSE")#
+#
+# define paths#
+info<-Sys.info()#
+if (info[4]=="DH1-MRG44"){#
+dire<-paste('C:/HY-data/ANORBERG/OneDrive/OneDrive - University of Helsinki/bakeoff/pipeline/RESULTS/',dada,'/',sep='')#
+}#
+if (info[4]=="DH2-BIOTI14"){#
+dire<-paste('D:/HY-data/NORBERG/OneDrive/OneDrive - University of Helsinki 1/bakeoff/pipeline/RESULTS/',dada,'/',sep='')#
+}#
+if (info[4]=="DH2-BIOTI15"){#
+dire<-paste('D:/HY-data/NORBERG/OneDrive/OneDrive - University of Helsinki/bakeoff/pipeline/RESULTS/',dada,'/',sep='')#
+}#
+if (substr(info[4],1,8)=="Anna-Mac"){#
+dire<-paste('~/OneDrive - University of Helsinki/bakeoff/pipeline/RESULTS/',dada,'/',sep='')#
+}#
+if (substr(info[4],1,5)=="staff"){#
+dire<-paste('~/OneDrive - University of Helsinki/bakeoff/pipeline/RESULTS/',dada,'/',sep='')#
+}
+rm(list=ls()[!(ls() %in% c('dire','thresh_sp','thresh_sp2','dada'))])#
+gc()#
+source(paste(dire,'prologue.r',sep=''))
+library('bipartite')#
+library('vegan')#
+#
+CScoresMSE_I <- matrix(NA, nrow=length(Sets), ncol=nmodels)#
+CScoresMSE_E <- matrix(NA, nrow=length(Sets), ncol=nmodels)#
+#
+for (d in 1:length(Sets)) {#
+#
+set_no<-Sets[d]#
+#
+load(paste(RD2,"/Cscores/",set_no,"/Cscores_I.r",sep=""))#
+load(paste(RD2,"/Cscores/",set_no,"/Cscores_E.r",sep=""))#
+#
+Cscores_I[which(is.na(Cscores_I),arr.ind=T)]<-mean(Cscores_E[,which(is.na(Cscores_I),arr.ind=T)[2]],na.rm=T)#
+Cscores_E[which(is.na(Cscores_I),arr.ind=T)]<-mean(Cscores_E[,which(is.na(Cscores_E),arr.ind=T)[2]],na.rm=T)#
+#
+# true scores#
+source(paste(WD,"read.format.bakeoff.REAL.data.r",sep=""))#
+trueCscore_I<-C.score(bo_data_I_valid$Y, normalise=T, FUN=mean, na.rm=T)#
+trueCscore_E<-C.score(bo_data_E_valid$Y, normalise=T, FUN=mean, na.rm=T)#
+#
+# MSE#
+CscoresMSE_I<-colMeans((Cscores_I-trueCscore_I)^2)#
+CscoresMSE_E<-colMeans((Cscores_E-trueCscore_E)^2)#
+#
+CScoresMSE_I[d,]<-CscoresMSE_I#
+CScoresMSE_E[d,]<-CscoresMSE_E#
+#
+}
+?install.packages
+install.packages('HMSC', "/Users/anorberg/OneDrive - University of Helsinki/HMSC-rpackage/Rpackage/HMSC",source=T)
+install.packages('HMSC', "/Users/anorberg/OneDrive - University of Helsinki/HMSC-rpackage/Rpackage/HMSC",type='source')
+?install.packages
+install.packages("/Users/anorberg/OneDrive - University of Helsinki/HMSC-rpackage/Rpackage/HMSC",type='source')
+install.packages(c('Rcpp','RcppArmadillo','coda'))
+install.packages('/Users/anorberg/OneDrive - University of Helsinki/HMSC for webpage/HMSC-R',repos=NULL,type='source')
+rm(list = ls(all=TRUE))#
+gc()#
+#
+#dada<-'sim'#
+dada<-'real'#
+#
+# threshold species? true/false, upper & lower limit#
+#thresh_sp<-list("TRUE",0.05,0.95)#
+#thresh_sp2<-list("TRUE",0.005,0.995)#
+# select all species#
+#thresh_sp<-list("FALSE")#
+#thresh_sp2<-list("FALSE")#
+#
+# define paths#
+info<-Sys.info()#
+if (info[4]=="DH1-MRG44"){#
+dire1<-'C:/HY-data/ANORBERG/OneDrive/OneDrive - University of Helsinki/bakeoff/pipeline/'#
+dire2<-paste('C:/HY-data/ANORBERG/OneDrive/OneDrive - University of Helsinki/bakeoff/pipeline/RESULTS/',dada,'/',sep='')#
+}#
+if (info[4]=="DH2-BIOTI14" | info[4]=="DH2-BIOTI15"){#
+dire1<-'D:/HY-data/NORBERG/OneDrive - University of Helsinki/bakeoff/pipeline/'#
+dire2<-paste('D:/HY-data/NORBERG/OneDrive - University of Helsinki/bakeoff/pipeline/RESULTS/',dada,'/',sep='')#
+}#
+if (substr(info[4],1,8)=="Anna-Mac" | substr(info[4],1,3)=="LM7" | substr(info[4],1,5)=="staff") {#
+dire1<-'~/OneDrive - University of Helsinki/bakeoff/pipeline/'#
+dire2<-paste('~/OneDrive - University of Helsinki/bakeoff/pipeline/RESULTS/',dada,'/',sep='')#
+}
+rm(list=ls()[!(ls() %in% c('dire1','dire2','thresh_sp','thresh_sp2','dada'))])#
+gc()#
+source(paste(dire1,'settings_real.r',sep=''))
+rm(list=ls()[!(ls() %in% c('dire1','dire2','thresh_sp','thresh_sp2','dada'))])#
+gc()#
+source(paste(dire1,'settings_real.r',sep=''))#
+#
+compTimes<-list()#
+for (d in 1:length(Sets)) {#
+set_no <- Sets[d]#
+load(paste(WD,'comTimes_',set_no,'.r',sep=''))#
+#
+# if (d==6) { #
+# 	load(paste(WD,'comTimes_',Sets[5],'.r',sep=''))#
+# 	comTimes_5<-comTimes#
+# 	rm(comTimes)#
+# 	load(paste(WD,'comTimes_',set_no,'.r',sep=''))#
+# 	comTimes_6<-comTimes#
+# 	comTimes_6[[22]]<-comTimes_5[[22]]#
+# 	comTimes_6[[23]]<-comTimes_5[[23]]#
+# 	comTimes<-comTimes_6#
+#}#
+#
+for (i in c(1:length(comTimes))[-c(17:21)]) {#
+if (units(comTimes[[i]])!="mins") {  comTimes[[i]]<-signif(as.double(comTimes[[i]], units = "mins"),2)#
+} else { comTimes[[i]]<-signif(as.double(comTimes[[i]]),2) }#
+}#
+#
+hmsctimes<-read.csv(paste(WD,'HMSCcompTimes_',set_no,'.csv',sep=''),header=F)#
+comTimes[c(17,19:21)]<-signif(hmsctimes/60,2)#
+compTimes[[d]]<-comTimes[-18]#
+}
+names(compTimes)<-Sets#
+str(compTimes)
+names(compTimes[[1]])
+names(compTimes[[2]])
+setdiff(names(compTimes[[1]]),names(compTimes[[2]]))
+setdiff(names(compTimes[[1]]),names(compTimes[[6]]))
+names(compTimes[[6]])
+names(compTimes[[1]])
+names(compTimes[[2]])
+names(compTimes[[3]])
+names(compTimes[[4]])
+names(compTimes[[5]])
+names(compTimes[[2]])
+length(names(compTimes[[2]]))
+length(names(compTimes[[1]]))
+length(names(compTimes[[2]]))
+length(names(compTimes[[3]]))
+length(names(compTimes[[4]]))
+length(names(compTimes[[5]]))
+setdiff(names(compTimes[[1]]),names(compTimes[[5]]))
+names(compTimes[[5]])
+setdiff(names(compTimes[[1]]),names(compTimes[[2]]))
+setdiff(names(compTimes[[1]]),names(compTimes[[6]]))
+library(ade4)#
+library(spdep)#
+library(adephylo)#
+library(adespatial)
+install.packages(c("ade4","spdep","adephylo","adespatial"))
+library(ade4)#
+library(spdep)#
+library(adephylo)#
+library(adespatial)
+load("comm.Rdata")
+data(ade4)
+data("ade4")
+data("comm.Rdata")
+library(ade4)
+library(spdep)
+library(adephylo)
+library(adespatial)
+?ade4
+??ade4
+load("comm.Rdata")
+citation("ase4")
+citation("ade4")
+install.packages(c("ade4"))
+library(ade4)
+??ade4
+load("comm.Rdata")
+?data
+data("comm.Rdata")
+data("comm")
+library(ade4)
+?ade4
+data("comm.Rdata")
+load("comm.Rdata")
+?load
+load("comm")
+install.packages("rJava", type = "source")
+install.packages("rJava")
+library("rJava")
+remove.packages(rJava)
+install.packages("rJava", dependencies=TRUE, type="source")
+install.packages("clang")
+library(gbm)
+citation(gbm)
+citation("gbm")
+citation("dismo")
+?glm
+require("e1071")
+citation("e1071")
+require("mvabund")
+citation("mvabund")
+citation("yaImpute")
+paste(FD,set_no,"/gjam_",j,".RData",sep="")
+r
+rm(list = ls())#
+install.packages(c("tidyr","dplyr"))
+system("defaults write org.R-project.R force.LANG en_US.UTF-8")
+sum(is.na(sp_occ_probs[[1]]))
+newIDs
+load("/Users/anorberg/OneDrive - University of Helsinki/bakeoff/pipeline/PREDICTIONS/birds/bc2_PAs_1_150.RData")
+m<-2
+j<-1
+require(BayesComm)
+bc<-bc2
+?predict.bc
+?predict.BC
+?predict
+require(nlme)#
+require(MASS)
+?glmmPQL
+FD2 <- paste(WD,"FITS2/",sep="")
+require(e1071)
+?svm
+rm(list = ls(all=TRUE)) #
+gc()#
+source("/Users/anorberg/OneDrive - University of Helsinki/functions.r")#
+setwd("/Users/anorberg/OneDrive - University of Helsinki/Leivonmaki")#
+#
+Y3<-read.csv(file="data/Y_set3.csv",header=FALSE)#
+pi3<-read.csv(file="data/Pi_set3.csv",header=FALSE)#
+covars3<-read.csv(file="data/covars3.txt",header=FALSE)#
+traitnames<-read.csv(file="data/traitnames.txt",header=FALSE)#
+rowNames3<-read.csv(file="data/rownames_set3.txt",header=FALSE)#
+rowNames3<-apply(rowNames3,2,as.character)#
+rowNames3<-substrRightRemove(rowNames3,5)#
+species<-read.table(file="data/species.txt",header=FALSE)#
+speciesFull<-c("Anomoporia kamtschatica","Antrodiella parasitica","Antrodia serialis","Antrodia sinuosa","Antrodia xantha","Asterodon ferruginosus",#
+				"Bjerkandera adusta","Byssoporia terrestris",#
+				"Fibroporia norrlandica","Fomitopsis pinicola",#
+				"Gloeoporus dichrous","Gloeophyllum odoratum","Gloeophyllum sepiarium",#
+				"Heterobasidion parviporum","Irpex lacteus","Ischnoderma benzoinum","Junghuhnia luteoalba",#
+				"Leptoporus mollis","Meruliopsis taxicola",#
+				"Oligoporus floriformis","Oligoporus fragilis","Oligoporus guttulatus","Oligoporus rennyi","Oligoporus sericeomollis","Oligoporus stipticus",#
+				"Phellinus viticola","Porpomyces mucidus",#
+				"Postia alni","Postia caesia","Postia hibernica","Postia leucomallella", "Postia tephroleuca",#
+				"Pycnoporellus fulgens","Sistotrema muscicola",#
+				"Skeletocutis amorpha","Skeletocutis biguttulata","Skeletocutis carneogrisea","Skeletocutis kuehneri","Skeletocutis odora","Skeletocutis papyracea",#
+				"Spongiporus undosus","Trichaptum abietinum","Trichaptum fuscoviolaceum")#
+cbind(speciesFull,species)#
+species<-species[,1]#
+#
+YVAL<-Y3#
+YVAL[is.na(YVAL)]<-1#
+YVAL<-data.frame(as.factor(rowNames3),YVAL)#
+YVAL<-YVAL[which(pi3[,3]=="2014",arr.ind=T),]#
+rownames(YVAL)<-YVAL[,1]#
+YVAL<-YVAL[,-1]
+thresholds<-c(0,0.75,0.85,0.95)#
+thrshldNames<-as.character(thresholds*100)#
+nullFlag<-"null"
+mod<-2
+if (mod==2 | mod==3) {#
+		assocs_raw<-list()#
+		assocs_raw[[1]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A0",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[2]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A75",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[3]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A85",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[4]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A95",nullFlag[null],".csv",sep=""),header=FALSE)#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+		#diag(assocs_raw[[1]])	# pitäs palauttaa priori mallilla 3?#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+	}
+null<-FALSE
+null
+nullFlag[null]
+if (mod==2 | mod==3) {#
+		assocs_raw<-list()#
+		assocs_raw[[1]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A0",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[2]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A75",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[3]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A85",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[4]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A95",nullFlag[null],".csv",sep=""),header=FALSE)#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+		#diag(assocs_raw[[1]])	# pitäs palauttaa priori mallilla 3?#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+	}
+if (null) {#
+	assocs_null<-vector("list", 4) #
+	names(assocs_null)<-paste("model",2:5,sep="")#
+} else {#
+	assocs_full<-vector("list", 4) #
+	names(assocs_full)<-paste("model",2:5,sep="")#
+}
+if (mod==2 | mod==3) {#
+		assocs_raw<-list()#
+		assocs_raw[[1]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A0",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[2]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A75",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[3]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A85",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[4]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A95",nullFlag[null],".csv",sep=""),header=FALSE)#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+		#diag(assocs_raw[[1]])	# pitäs palauttaa priori mallilla 3?#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+	}
+primSp<-c(which(species=="triabi"),which(species=="trifus"),which(species=="skeamo"),which(species=="fompin"))
+primSp
+primSp<-c(which(species=="triabi"),which(species=="trifus"),which(species=="skeamo"),which(species=="fompin"))#
+# select species, for which R2>0.05#
+load(file=paste("preds/predT2/colTjurs.RData",sep=""))#
+selSp<-names(colTjurs[(colTjurs[,3,3]>0.05),3,3])#
+selSpNo<-which(species==selSp[1])#
+for (i in 2:length(selSp)) {#
+	selSpNo<-c(selSpNo,which(species==selSp[i]))
+}
+selSpNo
+assocs<-list()#
+if (mod==2) {#
+	for (i in 1:3) {#
+		colnames(assocs_raw[[i]])<-species#
+		rownames(assocs_raw[[i]])<-c('triabi','trifus','skeamo','fompin')#
+		assocs[[i]]<-t(assocs_raw[[i]])#
+	}#
+} else {#
+	for (i in 1:3) {#
+		colnames(assocs_raw[[i]])<-species#
+		rownames(assocs_raw[[i]])<-species#
+		assocs[[i]]<-t(assocs_raw[[i]])#
+	}#
+}#
+names(assocs)<-thrshldNames
+thrshldNames
+names(assocs)
+assocs<-list()
+if (mod==2) {#
+	for (i in 1:3) {#
+		colnames(assocs_raw[[i]])<-species#
+		rownames(assocs_raw[[i]])<-c('triabi','trifus','skeamo','fompin')#
+		assocs[[i]]<-t(assocs_raw[[i]])#
+	}#
+} else {#
+	for (i in 1:3) {#
+		colnames(assocs_raw[[i]])<-species#
+		rownames(assocs_raw[[i]])<-species#
+		assocs[[i]]<-t(assocs_raw[[i]])#
+	}#
+}
+str(assocs)
+thrshldNames
+str(assocs_raw)
+assocs<-list()#
+if (mod==2) {#
+	for (i in 1:length(assocs_raw)) {#
+		colnames(assocs_raw[[i]])<-species#
+		rownames(assocs_raw[[i]])<-c('triabi','trifus','skeamo','fompin')#
+		assocs[[i]]<-t(assocs_raw[[i]])#
+	}#
+} else {#
+	for (i in 1:length(assocs_raw)) {#
+		colnames(assocs_raw[[i]])<-species#
+		rownames(assocs_raw[[i]])<-species#
+		assocs[[i]]<-t(assocs_raw[[i]])#
+	}#
+}
+names(assocs)<-thrshldNames
+assocs[[1]][which(assocs[[1]]>0)]<-5#
+assocs[[1]][which(assocs[[1]]<0)]<-2#
+assocs[[1]][which(assocs[[1]]==0)]<-1#
+#
+assocs[[2]][which(assocs[[2]]>0)]<-6#
+assocs[[2]][which(assocs[[2]]<0)]<-3#
+assocs[[2]][which(assocs[[2]]==0)]<-1#
+#
+assocs[[3]][which(assocs[[3]]>0)]<-7#
+assocs[[3]][which(assocs[[3]]<0)]<-4#
+assocs[[3]][which(assocs[[3]]==0)]<-1
+assocsComb<-assocs[[1]]#
+assocsComb[which(assocs[[2]]!=1,arr.ind=T)]<-assocs[[2]][which(assocs[[2]]!=1,arr.ind=T)]#
+assocsComb[which(assocs[[3]]!=1,arr.ind=T)]<-assocs[[3]][which(assocs[[3]]!=1,arr.ind=T)]
+species_sorted<-names(sort(rowSums(assocsComb)))#
+if (mod==2) {#
+	assocsComb_sorted<-assocsComb[species_sorted,]#
+} else {#
+	assocsComb_sorted<-assocsComb[species_sorted,species_sorted]#
+}
+assocsComb<-assocs[[1]]#
+assocsComb[which(assocs[[2]]!=1,arr.ind=T)]<-assocs[[2]][which(assocs[[2]]!=1,arr.ind=T)]#
+assocsComb[which(assocs[[3]]!=1,arr.ind=T)]<-assocs[[3]][which(assocs[[3]]!=1,arr.ind=T)]
+assocsComb_sorted<-assocsComb[species_sorted,species_sorted]
+species_sorted<-names(sort(rowSums(assocsComb)))#
+if (mod==2) {#
+	assocsComb_sorted<-assocsComb[species_sorted,]#
+} else {#
+	assocsComb_sorted<-assocsComb[species_sorted,species_sorted]#
+}
+par(family="serif")#
+		image(z=assocsComb,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)
+colrs<-c("#ffffff", # valkonen#
+		"#b8dcff","#1a8cff","#004d99",	# siniset#
+		"#ffdcc4","#ff7214","#b34700")	# punaset
+par(family="serif")#
+		image(z=assocsComb,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)
+grid(nx=nrow(assocsComb), ny=ncol(assocsComb), lty=1, lwd=0.5, col="#000000")
+axis(side=1, at=seq(0,1,length.out=length(species)), labels=species, las=2, cex.axis=0.75)#
+		axis(side=2, at=seq(0,1,length.out=species), labels=t(t(species)), las=2, cex.axis=0.75)#
+		mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)
+axis(side=1, at=seq(0,1,length.out=length(species)), labels=species, las=2, cex.axis=0.75)
+axis(side=2, at=seq(0,1,length.out=species), labels=t(t(species)), las=2, cex.axis=0.75)
+image(z=assocsComb,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+		grid(nx=nrow(assocsComb), ny=ncol(assocsComb), lty=1, lwd=0.5, col="#000000")#
+		axis(side=1, at=seq(0,1,length.out=length(species)), labels=species, las=2, cex.axis=0.75)#
+		axis(side=2, at=seq(0,1,length.out=length(species)), labels=species, las=2, cex.axis=0.75)#
+		mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)
+primSp
+image(z=assocsComb,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+		grid(nx=nrow(assocsComb), ny=ncol(assocsComb), lty=1, lwd=0.5, col="#000000")#
+		axis(side=1, at=seq(0,1,length.out=length(species)), labels=species, las=2, cex.axis=0.75)#
+		axis(side=2, at=seq(0,1,length.out=length(species[primSp])), labels=t(t(species[primSp])), las=2, cex.axis=0.75)#
+		mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)
+pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=7,height=2.5)#
+		par(family="serif")#
+		image(z=assocsComb,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+		grid(nx=nrow(assocsComb), ny=ncol(assocsComb), lty=1, lwd=0.5, col="#000000")#
+		axis(side=1, at=seq(0,1,length.out=length(species)), labels=species, las=2, cex.axis=0.75)#
+		axis(side=2, at=seq(0,1,length.out=length(species[primSp])), labels=t(t(species[primSp])), las=2, cex.axis=0.75)#
+		mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+	dev.off()
+species_sorted
+species_sorted[primSp]
+species[primSp]
+pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=7,height=2.5)#
+		par(family="serif")#
+		image(z=assocsComb,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+		grid(nx=nrow(assocsComb), ny=ncol(assocsComb), lty=1, lwd=0.5, col="#000000")#
+		axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+		axis(side=2, at=seq(0,1,length.out=length(species[primSp])), labels=t(t(species[primSp])), las=2, cex.axis=0.75)#
+		mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+	dev.off()
+mod<-3
+# MODEL 2 or 3#
+	if (mod==2 | mod==3) {#
+		assocs_raw<-list()#
+		assocs_raw[[1]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A0",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[2]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A75",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[3]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A85",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[4]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A95",nullFlag[null],".csv",sep=""),header=FALSE)#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+		#diag(assocs_raw[[1]])	# pitäs palauttaa priori mallilla 3?#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+	}
+assocs<-list()#
+if (mod==2) {#
+	for (i in 1:length(assocs_raw)) {#
+		colnames(assocs_raw[[i]])<-species#
+		rownames(assocs_raw[[i]])<-c('triabi','trifus','skeamo','fompin')#
+		assocs[[i]]<-t(assocs_raw[[i]])#
+	}#
+} else {#
+	for (i in 1:length(assocs_raw)) {#
+		colnames(assocs_raw[[i]])<-species#
+		rownames(assocs_raw[[i]])<-species#
+		assocs[[i]]<-t(assocs_raw[[i]])#
+	}#
+}#
+names(assocs)<-thrshldNames#
+#
+assocs[[1]][which(assocs[[1]]>0)]<-5#
+assocs[[1]][which(assocs[[1]]<0)]<-2#
+assocs[[1]][which(assocs[[1]]==0)]<-1#
+#
+assocs[[2]][which(assocs[[2]]>0)]<-6#
+assocs[[2]][which(assocs[[2]]<0)]<-3#
+assocs[[2]][which(assocs[[2]]==0)]<-1#
+#
+assocs[[3]][which(assocs[[3]]>0)]<-7#
+assocs[[3]][which(assocs[[3]]<0)]<-4#
+assocs[[3]][which(assocs[[3]]==0)]<-1#
+#
+assocsComb<-assocs[[1]]#
+assocsComb[which(assocs[[2]]!=1,arr.ind=T)]<-assocs[[2]][which(assocs[[2]]!=1,arr.ind=T)]#
+assocsComb[which(assocs[[3]]!=1,arr.ind=T)]<-assocs[[3]][which(assocs[[3]]!=1,arr.ind=T)]#
+#
+species_sorted<-names(sort(rowSums(assocsComb)))#
+if (mod==2) {#
+	assocsComb_sorted<-assocsComb[species_sorted,]#
+} else {#
+	assocsComb_sorted<-assocsComb[species_sorted,species_sorted]#
+}
+colrs<-c("#ffffff", # valkonen#
+		"#b8dcff","#1a8cff","#004d99",	# siniset#
+		"#ffdcc4","#ff7214","#b34700")	# punaset
+par(family="serif")#
+		image(z=assocsComb_sorted,col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+		grid(nx=nrow(assocsComb_sorted), ny=ncol(assocsComb_sorted), lty=1, lwd=0.5, col="#000000")#
+		axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+		axis(side=2, at=seq(0,1,length.out=length(species_sorted)), labels=t(t(species_sorted)), las=2, cex.axis=0.75)
+length(species_sorted)
+length(species[primSp])
+pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=7,height=25) # appendix#
+		par(family="serif")#
+		image(z=assocsComb_sorted,col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+		grid(nx=nrow(assocsComb_sorted), ny=ncol(assocsComb_sorted), lty=1, lwd=0.5, col="#000000")#
+		axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+		axis(side=2, at=seq(0,1,length.out=length(species_sorted)), labels=t(t(species_sorted)), las=2, cex.axis=0.75)#
+	dev.off()
+pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=7,height=7) # appendix#
+		par(family="serif")#
+		image(z=assocsComb_sorted,col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+		grid(nx=nrow(assocsComb_sorted), ny=ncol(assocsComb_sorted), lty=1, lwd=0.5, col="#000000")#
+		axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+		axis(side=2, at=seq(0,1,length.out=length(species_sorted)), labels=t(t(species_sorted)), las=2, cex.axis=0.75)#
+	dev.off()
+mod<-4
+betavAll<-read.mat(paste("fits/m4/params/betavAll",nullFlag[null],".mat",sep="")) #
+		betavAll<-betavAll[[1]]#
+		qvAll<-read.mat(paste("fits/m4/params/qvAll",nullFlag[null],".mat",sep="")) #
+		qvAll<-qvAll[[1]]#
+#
+		betaV<-array(NA,dim=list(dim(betavAll)[1],dim(betavAll)[2],dim(betavAll)[3]))#
+		for (i in 1:dim(betavAll)[3]) {#
+			betaV[,,i]<-betavAll[,,i]*qvAll[,,i]#
+		}#
+		betaVmeans<-apply(betaV,c(1,2),mean)#
+		qvSum<-apply(qvAll,c(1,2),sum)#
+		qvMeans<-qvSum/dim(qvAll)[3]#
+#
+		Pos<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+		Ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+		Pos[which(betavAll[,,1]>0,arr.ind=T)]<- 1#
+		Ng[which(betavAll[,,1]<0,arr.ind=T)]<- -1#
+		for (i in 2:dim(betavAll)[3]) {#
+			pos<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			pos[which(betavAll[,,i]>0,arr.ind=T)]<- 1#
+			ng[which(betavAll[,,i]<0,arr.ind=T)]<- -1#
+			Pos<-Pos+pos#
+			Ng<-Ng+ng#
+		}#
+		supportPos<-abs(Pos)/(qvMeans*dim(betavAll)[3])#
+		supportNg<-abs(Ng)/(qvMeans*dim(betavAll)[3])#
+		#supportPos<-abs(Pos)/dim(betavAll)[3]#
+		#supportNg<-abs(Ng)/dim(betavAll)[3]#
+		support<-supportPos#
+		support[which(supportNg>0.5,arr.ind=T)]<-supportNg[which(supportNg>0.5,arr.ind=T)]#
+		support[which(support=="Inf")]<-0	#
+#
+		betaVmeansThrs<-betaVmeans#
+		qvThrsh<-0.1#
+		betaVmeansThrs[which(qvMeans<qvThrsh,arr.ind=T)]<-0#
+		rownames(betaVmeansThrs)<-species#
+		colnames(betaVmeansThrs)<-rownames(betaVmeansThrs)#
+#
+		assocs_raw<-list()#
+		for (i in 1:length(thresholds)) {#
+			assocs_raw[[i]]<-matrix(0,nrow(support),ncol(support))#
+			assocs_raw[[i]][which(support>thresholds[i],arr.ind=T)]<-betaVmeansThrs[which(support>thresholds[i],arr.ind=T)]#
+		}#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}
+betavAll<-read.mat(paste("fits/m4/params/betavAll",nullFlag[null],".mat",sep="")) #
+		betavAll<-betavAll[[1]]
+require(rmatio)#
+		require(R.matlab)
+betavAll<-read.mat(paste("fits/m4/params/betavAll",nullFlag[null],".mat",sep="")) #
+		betavAll<-betavAll[[1]]#
+		qvAll<-read.mat(paste("fits/m4/params/qvAll",nullFlag[null],".mat",sep="")) #
+		qvAll<-qvAll[[1]]
+betaV<-array(NA,dim=list(dim(betavAll)[1],dim(betavAll)[2],dim(betavAll)[3]))#
+		for (i in 1:dim(betavAll)[3]) {#
+			betaV[,,i]<-betavAll[,,i]*qvAll[,,i]#
+		}#
+		betaVmeans<-apply(betaV,c(1,2),mean)#
+		qvSum<-apply(qvAll,c(1,2),sum)#
+		qvMeans<-qvSum/dim(qvAll)[3]#
+#
+		Pos<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+		Ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+		Pos[which(betavAll[,,1]>0,arr.ind=T)]<- 1#
+		Ng[which(betavAll[,,1]<0,arr.ind=T)]<- -1#
+		for (i in 2:dim(betavAll)[3]) {#
+			pos<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			pos[which(betavAll[,,i]>0,arr.ind=T)]<- 1#
+			ng[which(betavAll[,,i]<0,arr.ind=T)]<- -1#
+			Pos<-Pos+pos#
+			Ng<-Ng+ng#
+		}#
+		supportPos<-abs(Pos)/(qvMeans*dim(betavAll)[3])#
+		supportNg<-abs(Ng)/(qvMeans*dim(betavAll)[3])#
+		#supportPos<-abs(Pos)/dim(betavAll)[3]#
+		#supportNg<-abs(Ng)/dim(betavAll)[3]#
+		support<-supportPos#
+		support[which(supportNg>0.5,arr.ind=T)]<-supportNg[which(supportNg>0.5,arr.ind=T)]#
+		support[which(support=="Inf")]<-0	#
+#
+		betaVmeansThrs<-betaVmeans#
+		qvThrsh<-0.1#
+		betaVmeansThrs[which(qvMeans<qvThrsh,arr.ind=T)]<-0#
+		rownames(betaVmeansThrs)<-species#
+		colnames(betaVmeansThrs)<-rownames(betaVmeansThrs)#
+#
+		assocs_raw<-list()#
+		for (i in 1:length(thresholds)) {#
+			assocs_raw[[i]]<-matrix(0,nrow(support),ncol(support))#
+			assocs_raw[[i]][which(support>thresholds[i],arr.ind=T)]<-betaVmeansThrs[which(support>thresholds[i],arr.ind=T)]#
+		}#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}
+primSp<-c(which(species=="triabi"),which(species=="trifus"),which(species=="skeamo"),which(species=="fompin"))#
+# select species, for which R2>0.05#
+load(file=paste("preds/predT2/colTjurs.RData",sep=""))
+str(colTjurs)
+mod
+primSp<-c(which(species=="triabi"),which(species=="trifus"),which(species=="skeamo"),which(species=="fompin"))#
+# select species, for which R2>0.05#
+load(file=paste("preds/predT2/colTjurs.RData",sep=""))#
+selSp<-names(colTjurs[(colTjurs[,mod,3]>0.05),3,3])#
+selSpNo<-which(species==selSp[1])#
+for (i in 2:length(selSp)) {#
+	selSpNo<-c(selSpNo,which(species==selSp[i]))#
+}
+primSp<-c(which(species=="triabi"),which(species=="trifus"),which(species=="skeamo"),which(species=="fompin"))#
+# select species, for which R2>0.05#
+load(file=paste("preds/predT2/colTjurs.RData",sep=""))#
+selSp<-names(colTjurs[(colTjurs[,mod,3]>0.05),3,3])#
+selSpNo<-which(species==selSp[1])#
+for (i in 2:length(selSp)) {#
+	selSpNo<-c(selSpNo,which(species==selSp[i]))#
+}
+assocs<-list()#
+if (mod==2) {#
+	for (i in 1:length(assocs_raw)) {#
+		colnames(assocs_raw[[i]])<-species#
+		rownames(assocs_raw[[i]])<-c('triabi','trifus','skeamo','fompin')#
+		assocs[[i]]<-t(assocs_raw[[i]])#
+	}#
+} else {#
+	for (i in 1:length(assocs_raw)) {#
+		colnames(assocs_raw[[i]])<-species#
+		rownames(assocs_raw[[i]])<-species#
+		assocs[[i]]<-t(assocs_raw[[i]])#
+	}#
+}#
+names(assocs)<-thrshldNames#
+#
+assocs[[1]][which(assocs[[1]]>0)]<-5#
+assocs[[1]][which(assocs[[1]]<0)]<-2#
+assocs[[1]][which(assocs[[1]]==0)]<-1#
+#
+assocs[[2]][which(assocs[[2]]>0)]<-6#
+assocs[[2]][which(assocs[[2]]<0)]<-3#
+assocs[[2]][which(assocs[[2]]==0)]<-1#
+#
+assocs[[3]][which(assocs[[3]]>0)]<-7#
+assocs[[3]][which(assocs[[3]]<0)]<-4#
+assocs[[3]][which(assocs[[3]]==0)]<-1#
+#
+assocsComb<-assocs[[1]]#
+assocsComb[which(assocs[[2]]!=1,arr.ind=T)]<-assocs[[2]][which(assocs[[2]]!=1,arr.ind=T)]#
+assocsComb[which(assocs[[3]]!=1,arr.ind=T)]<-assocs[[3]][which(assocs[[3]]!=1,arr.ind=T)]#
+#
+species_sorted<-names(sort(rowSums(assocsComb)))#
+if (mod==2) {#
+	assocsComb_sorted<-assocsComb[species_sorted,]#
+} else {#
+	assocsComb_sorted<-assocsComb[species_sorted,species_sorted]#
+}#
+#
+# värit: 1 nollat = valkonen, 2-4 negat = siniset, 5-7 posit = punaset#
+colrs<-c("#ffffff", # valkonen#
+		"#b8dcff","#1a8cff","#004d99",	# siniset#
+		"#ffdcc4","#ff7214","#b34700")	# punaset#
+#
+### all results for appendix#
+##############################
+if (mod==2) {#
+	pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=7,height=2.5)#
+		par(family="serif")#
+		image(z=assocsComb,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+		grid(nx=nrow(assocsComb), ny=ncol(assocsComb), lty=1, lwd=0.5, col="#000000")#
+		axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+		axis(side=2, at=seq(0,1,length.out=length(species[primSp])), labels=t(t(species[primSp])), las=2, cex.axis=0.75)#
+		mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+	dev.off()#
+} else {#
+	pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=7,height=7) # appendix#
+		par(family="serif")#
+		image(z=assocsComb_sorted,col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+		grid(nx=nrow(assocsComb_sorted), ny=ncol(assocsComb_sorted), lty=1, lwd=0.5, col="#000000")#
+		axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+		axis(side=2, at=seq(0,1,length.out=length(species_sorted)), labels=t(t(species_sorted)), las=2, cex.axis=0.75)#
+	dev.off()#
+}
+mod<-2
+# MODEL 2 or 3#
+	if (mod==2 | mod==3) {#
+		assocs_raw<-list()#
+		assocs_raw[[1]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A0",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[2]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A75",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[3]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A85",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[4]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A95",nullFlag[null],".csv",sep=""),header=FALSE)#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+		#diag(assocs_raw[[1]])	# pitäs palauttaa priori mallilla 3?#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+	}#
+#
+	# MODEL 4#
+	if (mod==4) {#
+		require(rmatio)#
+		require(R.matlab)#
+		betavAll<-read.mat(paste("fits/m4/params/betavAll",nullFlag[null],".mat",sep="")) #
+		betavAll<-betavAll[[1]]#
+		qvAll<-read.mat(paste("fits/m4/params/qvAll",nullFlag[null],".mat",sep="")) #
+		qvAll<-qvAll[[1]]#
+#
+		betaV<-array(NA,dim=list(dim(betavAll)[1],dim(betavAll)[2],dim(betavAll)[3]))#
+		for (i in 1:dim(betavAll)[3]) {#
+			betaV[,,i]<-betavAll[,,i]*qvAll[,,i]#
+		}#
+		betaVmeans<-apply(betaV,c(1,2),mean)#
+		qvSum<-apply(qvAll,c(1,2),sum)#
+		qvMeans<-qvSum/dim(qvAll)[3]#
+#
+		Pos<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+		Ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+		Pos[which(betavAll[,,1]>0,arr.ind=T)]<- 1#
+		Ng[which(betavAll[,,1]<0,arr.ind=T)]<- -1#
+		for (i in 2:dim(betavAll)[3]) {#
+			pos<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			pos[which(betavAll[,,i]>0,arr.ind=T)]<- 1#
+			ng[which(betavAll[,,i]<0,arr.ind=T)]<- -1#
+			Pos<-Pos+pos#
+			Ng<-Ng+ng#
+		}#
+		supportPos<-abs(Pos)/(qvMeans*dim(betavAll)[3])#
+		supportNg<-abs(Ng)/(qvMeans*dim(betavAll)[3])#
+		#supportPos<-abs(Pos)/dim(betavAll)[3]#
+		#supportNg<-abs(Ng)/dim(betavAll)[3]#
+		support<-supportPos#
+		support[which(supportNg>0.5,arr.ind=T)]<-supportNg[which(supportNg>0.5,arr.ind=T)]#
+		support[which(support=="Inf")]<-0	#
+#
+		betaVmeansThrs<-betaVmeans#
+		qvThrsh<-0.1#
+		betaVmeansThrs[which(qvMeans<qvThrsh,arr.ind=T)]<-0#
+		rownames(betaVmeansThrs)<-species#
+		colnames(betaVmeansThrs)<-rownames(betaVmeansThrs)#
+#
+		assocs_raw<-list()#
+		for (i in 1:length(thresholds)) {#
+			assocs_raw[[i]]<-matrix(0,nrow(support),ncol(support))#
+			assocs_raw[[i]][which(support>thresholds[i],arr.ind=T)]<-betaVmeansThrs[which(support>thresholds[i],arr.ind=T)]#
+		}#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+#
+	# 	betaVmeans50<-betaVmeans#
+	# 	betaVmeans50[which(qvMeans<0.5,arr.ind=T)]<-0#
+	# 	rownames(betaVmeans50)<-species#
+	# 	colnames(betaVmeans50)<-rownames(betaVmeans50)#
+	# #
+	# 	betaVmeans75<-betaVmeans#
+	# 	betaVmeans75[which(qvMeans<0.75,arr.ind=T)]<-0#
+	# 	rownames(betaVmeans75)<-species#
+	# 	colnames(betaVmeans75)<-rownames(betaVmeans75)#
+	# #
+	# 	assocs_raw<-list()#
+	# 	assocs_raw[[1]]<-betaVmeans25#
+	# 	assocs_raw[[2]]<-betaVmeans50#
+	# 	assocs_raw[[3]]<-betaVmeans75#
+	}#
+#
+	# MODEL 5#
+	if (mod==5) {#
+		A<-read.mat(paste("fits/m5/params/A",nullFlag[null],".mat",sep=""))#
+		A<-A[[1]][[1]]#
+#
+		Pos<-matrix(0,dim(A[[1]])[1],dim(A[[1]])[2])#
+		Ng<-matrix(0,dim(A[[1]])[1],dim(A[[1]])[2])#
+		Pos[which(A[[1]]>0,arr.ind=T)]<- 1#
+		Ng[which(A[[1]]<0,arr.ind=T)]<- -1#
+		for (i in 2:dim(betavAll)[3]) {#
+			pos<-matrix(0,dim(A[[1]])[1],dim(A[[1]])[2])#
+			ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			pos[which(A[[i]]>0,arr.ind=T)]<- 1#
+			ng[which(A[[i]]<0,arr.ind=T)]<- -1#
+			Pos<-Pos+pos#
+			Ng<-Ng+ng#
+		}#
+		supportPos<-abs(Pos)/length(A)#
+		supportNg<-abs(Ng)/length(A)#
+		support<-supportPos#
+		support[which(supportNg>0.5,arr.ind=T)]<-supportNg[which(supportNg>0.5,arr.ind=T)]#
+#
+		Aarr<-simplify2array(A)#
+		Ameans<-apply(Aarr,c(1,2),mean)#
+#
+		assocs_raw<-list()#
+		for (i in 1:length(thresholds)) {#
+			assocs_raw[[i]]<-matrix(0,nrow(support),ncol(support))#
+			assocs_raw[[i]][which(support>thresholds[i],arr.ind=T)]<-Ameans[which(support>thresholds[i],arr.ind=T)]#
+		}#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+	}
+# select primary colonisers#
+primSp<-c(which(species=="triabi"),which(species=="trifus"),which(species=="skeamo"),which(species=="fompin"))#
+# select species, for which R2>0.05#
+load(file=paste("preds/predT2/colTjurs.RData",sep=""))#
+selSp<-names(colTjurs[(colTjurs[,mod,3]>0.05),3,3])#
+selSpNo<-which(species==selSp[1])#
+for (i in 2:length(selSp)) {#
+	selSpNo<-c(selSpNo,which(species==selSp[i]))#
+}
+assocs<-list()#
+if (mod==2) {#
+	for (i in 1:length(assocs_raw)) {#
+		colnames(assocs_raw[[i]])<-species#
+		rownames(assocs_raw[[i]])<-c('triabi','trifus','skeamo','fompin')#
+		assocs[[i]]<-t(assocs_raw[[i]])#
+	}#
+} else {#
+	for (i in 1:length(assocs_raw)) {#
+		colnames(assocs_raw[[i]])<-species#
+		rownames(assocs_raw[[i]])<-species#
+		assocs[[i]]<-t(assocs_raw[[i]])#
+	}#
+}#
+names(assocs)<-thrshldNames#
+#
+assocs[[1]][which(assocs[[1]]>0)]<-5#
+assocs[[1]][which(assocs[[1]]<0)]<-2#
+assocs[[1]][which(assocs[[1]]==0)]<-1#
+#
+assocs[[2]][which(assocs[[2]]>0)]<-6#
+assocs[[2]][which(assocs[[2]]<0)]<-3#
+assocs[[2]][which(assocs[[2]]==0)]<-1#
+#
+assocs[[3]][which(assocs[[3]]>0)]<-7#
+assocs[[3]][which(assocs[[3]]<0)]<-4#
+assocs[[3]][which(assocs[[3]]==0)]<-1#
+#
+assocsComb<-assocs[[1]]#
+assocsComb[which(assocs[[2]]!=1,arr.ind=T)]<-assocs[[2]][which(assocs[[2]]!=1,arr.ind=T)]#
+assocsComb[which(assocs[[3]]!=1,arr.ind=T)]<-assocs[[3]][which(assocs[[3]]!=1,arr.ind=T)]#
+#
+species_sorted<-names(sort(rowSums(assocsComb)))#
+if (mod==2) {#
+	assocsComb_sorted<-assocsComb[species_sorted,]#
+} else {#
+	assocsComb_sorted<-assocsComb[species_sorted,species_sorted]#
+}#
+#
+# värit: 1 nollat = valkonen, 2-4 negat = siniset, 5-7 posit = punaset#
+colrs<-c("#ffffff", # valkonen#
+		"#b8dcff","#1a8cff","#004d99",	# siniset#
+		"#ffdcc4","#ff7214","#b34700")	# punaset#
+#
+### all results for appendix#
+##############################
+if (mod==2) {#
+	pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=7,height=2.5)#
+		par(family="serif")#
+		image(z=assocsComb,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+		grid(nx=nrow(assocsComb), ny=ncol(assocsComb), lty=1, lwd=0.5, col="#000000")#
+		axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+		axis(side=2, at=seq(0,1,length.out=length(species[primSp])), labels=t(t(species[primSp])), las=2, cex.axis=0.75)#
+		mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+	dev.off()#
+} else {#
+	pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=7,height=7) # appendix#
+		par(family="serif")#
+		image(z=assocsComb_sorted,col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+		grid(nx=nrow(assocsComb_sorted), ny=ncol(assocsComb_sorted), lty=1, lwd=0.5, col="#000000")#
+		axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+		axis(side=2, at=seq(0,1,length.out=length(species_sorted)), labels=t(t(species_sorted)), las=2, cex.axis=0.75)#
+	dev.off()#
+}
+if (mod==2) {#
+	pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=10,height=2.5)#
+		par(family="serif")#
+		image(z=assocsComb,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+		grid(nx=nrow(assocsComb), ny=ncol(assocsComb), lty=1, lwd=0.5, col="#000000")#
+		axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+		axis(side=2, at=seq(0,1,length.out=length(species[primSp])), labels=t(t(species[primSp])), las=2, cex.axis=0.75)#
+		mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+	dev.off()#
+} else {#
+	pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=10,height=10) # appendix#
+		par(family="serif")#
+		image(z=assocsComb_sorted,col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+		grid(nx=nrow(assocsComb_sorted), ny=ncol(assocsComb_sorted), lty=1, lwd=0.5, col="#000000")#
+		axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+		axis(side=2, at=seq(0,1,length.out=length(species_sorted)), labels=t(t(species_sorted)), las=2, cex.axis=0.75)#
+	dev.off()#
+}
+pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=10,height=3)#
+		par(family="serif")#
+		image(z=assocsComb,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+		grid(nx=nrow(assocsComb), ny=ncol(assocsComb), lty=1, lwd=0.5, col="#000000")#
+		axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+		axis(side=2, at=seq(0,1,length.out=length(species[primSp])), labels=t(t(species[primSp])), las=2, cex.axis=0.75)#
+		mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+	dev.off()
+pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=10,height=2.5)#
+		par(family="serif")#
+		image(z=assocsComb,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+		grid(nx=nrow(assocsComb), ny=ncol(assocsComb), lty=1, lwd=0.5, col="#000000")#
+		axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+		axis(side=2, at=seq(0,1,length.out=length(species[primSp])), labels=t(t(species[primSp])), las=2, cex.axis=0.75)#
+		mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+	dev.off()
+pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=10,height=2.75)#
+		par(family="serif")#
+		image(z=assocsComb,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+		grid(nx=nrow(assocsComb), ny=ncol(assocsComb), lty=1, lwd=0.5, col="#000000")#
+		axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+		axis(side=2, at=seq(0,1,length.out=length(species[primSp])), labels=t(t(species[primSp])), las=2, cex.axis=0.75)#
+		mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+	dev.off()
+pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=10,height=2.5)#
+		par(family="serif")#
+		image(z=assocsComb,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+		grid(nx=nrow(assocsComb), ny=ncol(assocsComb), lty=1, lwd=0.5, col="#000000")#
+		axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+		axis(side=2, at=seq(0,1,length.out=length(species[primSp])), labels=t(t(species[primSp])), las=2, cex.axis=0.75)#
+		mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+	dev.off()
+thresholds<-c(0,0.75,0.85,0.95)#
+thrshldNames<-as.character(thresholds*100)#
+nullFlag<-"null"#
+#
+####
+#
+null<-FALSE#
+#
+if (null) {#
+	assocs_null<-vector("list", 4) #
+	names(assocs_null)<-paste("model",2:5,sep="")#
+} else {#
+	assocs_full<-vector("list", 4) #
+	names(assocs_full)<-paste("model",2:5,sep="")#
+}#
+#
+for (mod in 2:5) {#
+#
+	# MODEL 2 or 3#
+	if (mod==2 | mod==3) {#
+		assocs_raw<-list()#
+		assocs_raw[[1]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A0",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[2]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A75",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[3]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A85",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[4]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A95",nullFlag[null],".csv",sep=""),header=FALSE)#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+		#diag(assocs_raw[[1]])	# pitäs palauttaa priori mallilla 3?#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+	}#
+#
+	# MODEL 4#
+	if (mod==4) {#
+		require(rmatio)#
+		require(R.matlab)#
+		betavAll<-read.mat(paste("fits/m4/params/betavAll",nullFlag[null],".mat",sep="")) #
+		betavAll<-betavAll[[1]]#
+		qvAll<-read.mat(paste("fits/m4/params/qvAll",nullFlag[null],".mat",sep="")) #
+		qvAll<-qvAll[[1]]#
+#
+		betaV<-array(NA,dim=list(dim(betavAll)[1],dim(betavAll)[2],dim(betavAll)[3]))#
+		for (i in 1:dim(betavAll)[3]) {#
+			betaV[,,i]<-betavAll[,,i]*qvAll[,,i]#
+		}#
+		betaVmeans<-apply(betaV,c(1,2),mean)#
+		qvSum<-apply(qvAll,c(1,2),sum)#
+		qvMeans<-qvSum/dim(qvAll)[3]#
+#
+		Pos<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+		Ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+		Pos[which(betavAll[,,1]>0,arr.ind=T)]<- 1#
+		Ng[which(betavAll[,,1]<0,arr.ind=T)]<- -1#
+		for (i in 2:dim(betavAll)[3]) {#
+			pos<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			pos[which(betavAll[,,i]>0,arr.ind=T)]<- 1#
+			ng[which(betavAll[,,i]<0,arr.ind=T)]<- -1#
+			Pos<-Pos+pos#
+			Ng<-Ng+ng#
+		}#
+		supportPos<-abs(Pos)/(qvMeans*dim(betavAll)[3])#
+		supportNg<-abs(Ng)/(qvMeans*dim(betavAll)[3])#
+		#supportPos<-abs(Pos)/dim(betavAll)[3]#
+		#supportNg<-abs(Ng)/dim(betavAll)[3]#
+		support<-supportPos#
+		support[which(supportNg>0.5,arr.ind=T)]<-supportNg[which(supportNg>0.5,arr.ind=T)]#
+		support[which(support=="Inf")]<-0	#
+#
+		betaVmeansThrs<-betaVmeans#
+		qvThrsh<-0.1#
+		betaVmeansThrs[which(qvMeans<qvThrsh,arr.ind=T)]<-0#
+		rownames(betaVmeansThrs)<-species#
+		colnames(betaVmeansThrs)<-rownames(betaVmeansThrs)#
+#
+		assocs_raw<-list()#
+		for (i in 1:length(thresholds)) {#
+			assocs_raw[[i]]<-matrix(0,nrow(support),ncol(support))#
+			assocs_raw[[i]][which(support>thresholds[i],arr.ind=T)]<-betaVmeansThrs[which(support>thresholds[i],arr.ind=T)]#
+		}#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+#
+	# 	betaVmeans50<-betaVmeans#
+	# 	betaVmeans50[which(qvMeans<0.5,arr.ind=T)]<-0#
+	# 	rownames(betaVmeans50)<-species#
+	# 	colnames(betaVmeans50)<-rownames(betaVmeans50)#
+	# #
+	# 	betaVmeans75<-betaVmeans#
+	# 	betaVmeans75[which(qvMeans<0.75,arr.ind=T)]<-0#
+	# 	rownames(betaVmeans75)<-species#
+	# 	colnames(betaVmeans75)<-rownames(betaVmeans75)#
+	# #
+	# 	assocs_raw<-list()#
+	# 	assocs_raw[[1]]<-betaVmeans25#
+	# 	assocs_raw[[2]]<-betaVmeans50#
+	# 	assocs_raw[[3]]<-betaVmeans75#
+	}#
+#
+	# MODEL 5#
+	if (mod==5) {#
+		A<-read.mat(paste("fits/m5/params/A",nullFlag[null],".mat",sep=""))#
+		A<-A[[1]][[1]]#
+#
+		Pos<-matrix(0,dim(A[[1]])[1],dim(A[[1]])[2])#
+		Ng<-matrix(0,dim(A[[1]])[1],dim(A[[1]])[2])#
+		Pos[which(A[[1]]>0,arr.ind=T)]<- 1#
+		Ng[which(A[[1]]<0,arr.ind=T)]<- -1#
+		for (i in 2:dim(betavAll)[3]) {#
+			pos<-matrix(0,dim(A[[1]])[1],dim(A[[1]])[2])#
+			ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			pos[which(A[[i]]>0,arr.ind=T)]<- 1#
+			ng[which(A[[i]]<0,arr.ind=T)]<- -1#
+			Pos<-Pos+pos#
+			Ng<-Ng+ng#
+		}#
+		supportPos<-abs(Pos)/length(A)#
+		supportNg<-abs(Ng)/length(A)#
+		support<-supportPos#
+		support[which(supportNg>0.5,arr.ind=T)]<-supportNg[which(supportNg>0.5,arr.ind=T)]#
+#
+		Aarr<-simplify2array(A)#
+		Ameans<-apply(Aarr,c(1,2),mean)#
+#
+		assocs_raw<-list()#
+		for (i in 1:length(thresholds)) {#
+			assocs_raw[[i]]<-matrix(0,nrow(support),ncol(support))#
+			assocs_raw[[i]][which(support>thresholds[i],arr.ind=T)]<-Ameans[which(support>thresholds[i],arr.ind=T)]#
+		}#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+	}#
+	######
+#
+	# select primary colonisers#
+	primSp<-c(which(species=="triabi"),which(species=="trifus"),which(species=="skeamo"),which(species=="fompin"))#
+	# select species, for which R2>0.05#
+	load(file=paste("preds/predT2/colTjurs.RData",sep=""))#
+	selSp<-names(colTjurs[(colTjurs[,mod,3]>0.05),3,3])#
+	selSpNo<-which(species==selSp[1])#
+	for (i in 2:length(selSp)) {#
+		selSpNo<-c(selSpNo,which(species==selSp[i]))#
+	}#
+#
+	# quartz()#
+	# par(family="sans")#
+	# plot(assocs_null$model5[primSp,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],pch=16)#
+	# points(assocs_null$model4[primSp,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],type="l",col="red",lwd=2)#
+	# points(assocs_null$model3[primSp,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],col="grey50",pch=16)#
+	# points(assocs_null$model2[,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],col="blue",pch=16)#
+#
+	######
+#
+	assocs<-list()#
+	if (mod==2) {#
+		for (i in 1:length(assocs_raw)) {#
+			colnames(assocs_raw[[i]])<-species#
+			rownames(assocs_raw[[i]])<-c('triabi','trifus','skeamo','fompin')#
+			assocs[[i]]<-t(assocs_raw[[i]])#
+		}#
+	} else {#
+		for (i in 1:length(assocs_raw)) {#
+			colnames(assocs_raw[[i]])<-species#
+			rownames(assocs_raw[[i]])<-species#
+			assocs[[i]]<-t(assocs_raw[[i]])#
+		}#
+	}#
+	names(assocs)<-thrshldNames#
+#
+	assocs[[1]][which(assocs[[1]]>0)]<-5#
+	assocs[[1]][which(assocs[[1]]<0)]<-2#
+	assocs[[1]][which(assocs[[1]]==0)]<-1#
+#
+	assocs[[2]][which(assocs[[2]]>0)]<-6#
+	assocs[[2]][which(assocs[[2]]<0)]<-3#
+	assocs[[2]][which(assocs[[2]]==0)]<-1#
+#
+	assocs[[3]][which(assocs[[3]]>0)]<-7#
+	assocs[[3]][which(assocs[[3]]<0)]<-4#
+	assocs[[3]][which(assocs[[3]]==0)]<-1#
+#
+	assocsComb<-assocs[[1]]#
+	assocsComb[which(assocs[[2]]!=1,arr.ind=T)]<-assocs[[2]][which(assocs[[2]]!=1,arr.ind=T)]#
+	assocsComb[which(assocs[[3]]!=1,arr.ind=T)]<-assocs[[3]][which(assocs[[3]]!=1,arr.ind=T)]#
+#
+	species_sorted<-names(sort(rowSums(assocsComb)))#
+	if (mod==2) {#
+		assocsComb_sorted<-assocsComb[species_sorted,]#
+	} else {#
+		assocsComb_sorted<-assocsComb[species_sorted,species_sorted]#
+	}#
+#
+	# värit: 1 nollat = valkonen, 2-4 negat = siniset, 5-7 posit = punaset#
+	colrs<-c("#ffffff", # valkonen#
+			"#b8dcff","#1a8cff","#004d99",	# siniset#
+			"#ffdcc4","#ff7214","#b34700")	# punaset#
+#
+	### all results for appendix#
+	##############################
+	if (mod==2) {#
+		pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=10,height=2.5)#
+			par(family="serif")#
+			image(z=assocsComb,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+			grid(nx=nrow(assocsComb), ny=ncol(assocsComb), lty=1, lwd=0.5, col="#000000")#
+			axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+			axis(side=2, at=seq(0,1,length.out=length(species[primSp])), labels=t(t(species[primSp])), las=2, cex.axis=0.75)#
+			mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+		dev.off()#
+	} else {#
+		pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=10,height=10) # appendix#
+			par(family="serif")#
+			image(z=assocsComb_sorted,col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+			grid(nx=nrow(assocsComb_sorted), ny=ncol(assocsComb_sorted), lty=1, lwd=0.5, col="#000000")#
+			axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+			axis(side=2, at=seq(0,1,length.out=length(species_sorted)), labels=t(t(species_sorted)), las=2, cex.axis=0.75)#
+		dev.off()#
+	}#
+#
+}
+thresholds<-c(0,0.75,0.85,0.95)#
+thrshldNames<-as.character(thresholds*100)#
+nullFlag<-"null"#
+whichfigs<-"ms" # "ms" or "append"
+null<-FALSE#
+#
+if (null) {#
+	assocs_null<-vector("list", 4) #
+	names(assocs_null)<-paste("model",2:5,sep="")#
+} else {#
+	assocs_full<-vector("list", 4) #
+	names(assocs_full)<-paste("model",2:5,sep="")#
+}#
+#
+for (mod in 2:5) {#
+#
+	# MODEL 2 or 3#
+	if (mod==2 | mod==3) {#
+		assocs_raw<-list()#
+		assocs_raw[[1]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A0",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[2]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A75",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[3]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A85",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[4]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A95",nullFlag[null],".csv",sep=""),header=FALSE)#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+		#diag(assocs_raw[[1]])	# pitäs palauttaa priori mallilla 3?#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+	}#
+#
+	# MODEL 4#
+	if (mod==4) {#
+		require(rmatio)#
+		require(R.matlab)#
+		betavAll<-read.mat(paste("fits/m4/params/betavAll",nullFlag[null],".mat",sep="")) #
+		betavAll<-betavAll[[1]]#
+		qvAll<-read.mat(paste("fits/m4/params/qvAll",nullFlag[null],".mat",sep="")) #
+		qvAll<-qvAll[[1]]#
+#
+		betaV<-array(NA,dim=list(dim(betavAll)[1],dim(betavAll)[2],dim(betavAll)[3]))#
+		for (i in 1:dim(betavAll)[3]) {#
+			betaV[,,i]<-betavAll[,,i]*qvAll[,,i]#
+		}#
+		betaVmeans<-apply(betaV,c(1,2),mean)#
+		qvSum<-apply(qvAll,c(1,2),sum)#
+		qvMeans<-qvSum/dim(qvAll)[3]#
+#
+		Pos<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+		Ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+		Pos[which(betavAll[,,1]>0,arr.ind=T)]<- 1#
+		Ng[which(betavAll[,,1]<0,arr.ind=T)]<- -1#
+		for (i in 2:dim(betavAll)[3]) {#
+			pos<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			pos[which(betavAll[,,i]>0,arr.ind=T)]<- 1#
+			ng[which(betavAll[,,i]<0,arr.ind=T)]<- -1#
+			Pos<-Pos+pos#
+			Ng<-Ng+ng#
+		}#
+		supportPos<-abs(Pos)/(qvMeans*dim(betavAll)[3])#
+		supportNg<-abs(Ng)/(qvMeans*dim(betavAll)[3])#
+		#supportPos<-abs(Pos)/dim(betavAll)[3]#
+		#supportNg<-abs(Ng)/dim(betavAll)[3]#
+		support<-supportPos#
+		support[which(supportNg>0.5,arr.ind=T)]<-supportNg[which(supportNg>0.5,arr.ind=T)]#
+		support[which(support=="Inf")]<-0	#
+#
+		betaVmeansThrs<-betaVmeans#
+		qvThrsh<-0.1#
+		betaVmeansThrs[which(qvMeans<qvThrsh,arr.ind=T)]<-0#
+		rownames(betaVmeansThrs)<-species#
+		colnames(betaVmeansThrs)<-rownames(betaVmeansThrs)#
+#
+		assocs_raw<-list()#
+		for (i in 1:length(thresholds)) {#
+			assocs_raw[[i]]<-matrix(0,nrow(support),ncol(support))#
+			assocs_raw[[i]][which(support>thresholds[i],arr.ind=T)]<-betaVmeansThrs[which(support>thresholds[i],arr.ind=T)]#
+		}#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+#
+	# 	betaVmeans50<-betaVmeans#
+	# 	betaVmeans50[which(qvMeans<0.5,arr.ind=T)]<-0#
+	# 	rownames(betaVmeans50)<-species#
+	# 	colnames(betaVmeans50)<-rownames(betaVmeans50)#
+	# #
+	# 	betaVmeans75<-betaVmeans#
+	# 	betaVmeans75[which(qvMeans<0.75,arr.ind=T)]<-0#
+	# 	rownames(betaVmeans75)<-species#
+	# 	colnames(betaVmeans75)<-rownames(betaVmeans75)#
+	# #
+	# 	assocs_raw<-list()#
+	# 	assocs_raw[[1]]<-betaVmeans25#
+	# 	assocs_raw[[2]]<-betaVmeans50#
+	# 	assocs_raw[[3]]<-betaVmeans75#
+	}#
+#
+	# MODEL 5#
+	if (mod==5) {#
+		A<-read.mat(paste("fits/m5/params/A",nullFlag[null],".mat",sep=""))#
+		A<-A[[1]][[1]]#
+#
+		Pos<-matrix(0,dim(A[[1]])[1],dim(A[[1]])[2])#
+		Ng<-matrix(0,dim(A[[1]])[1],dim(A[[1]])[2])#
+		Pos[which(A[[1]]>0,arr.ind=T)]<- 1#
+		Ng[which(A[[1]]<0,arr.ind=T)]<- -1#
+		for (i in 2:dim(betavAll)[3]) {#
+			pos<-matrix(0,dim(A[[1]])[1],dim(A[[1]])[2])#
+			ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			pos[which(A[[i]]>0,arr.ind=T)]<- 1#
+			ng[which(A[[i]]<0,arr.ind=T)]<- -1#
+			Pos<-Pos+pos#
+			Ng<-Ng+ng#
+		}#
+		supportPos<-abs(Pos)/length(A)#
+		supportNg<-abs(Ng)/length(A)#
+		support<-supportPos#
+		support[which(supportNg>0.5,arr.ind=T)]<-supportNg[which(supportNg>0.5,arr.ind=T)]#
+#
+		Aarr<-simplify2array(A)#
+		Ameans<-apply(Aarr,c(1,2),mean)#
+#
+		assocs_raw<-list()#
+		for (i in 1:length(thresholds)) {#
+			assocs_raw[[i]]<-matrix(0,nrow(support),ncol(support))#
+			assocs_raw[[i]][which(support>thresholds[i],arr.ind=T)]<-Ameans[which(support>thresholds[i],arr.ind=T)]#
+		}#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+	}#
+	######
+#
+	# select primary colonisers#
+	primSp<-c(which(species=="triabi"),which(species=="trifus"),which(species=="skeamo"),which(species=="fompin"))#
+	# select species, for which R2>0.05#
+	load(file=paste("preds/predT2/colTjurs.RData",sep=""))#
+	selSp<-names(colTjurs[(colTjurs[,mod,3]>0.05),3,3])#
+	selSpNo<-which(species==selSp[1])#
+	for (i in 2:length(selSp)) {#
+		selSpNo<-c(selSpNo,which(species==selSp[i]))#
+	}#
+#
+	# quartz()#
+	# par(family="sans")#
+	# plot(assocs_null$model5[primSp,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],pch=16)#
+	# points(assocs_null$model4[primSp,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],type="l",col="red",lwd=2)#
+	# points(assocs_null$model3[primSp,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],col="grey50",pch=16)#
+	# points(assocs_null$model2[,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],col="blue",pch=16)#
+#
+	######
+#
+	assocs<-list()#
+	if (mod==2) {#
+		for (i in 1:length(assocs_raw)) {#
+			colnames(assocs_raw[[i]])<-species#
+			rownames(assocs_raw[[i]])<-c('triabi','trifus','skeamo','fompin')#
+			assocs[[i]]<-t(assocs_raw[[i]])#
+		}#
+	} else {#
+		for (i in 1:length(assocs_raw)) {#
+			colnames(assocs_raw[[i]])<-species#
+			rownames(assocs_raw[[i]])<-species#
+			assocs[[i]]<-t(assocs_raw[[i]])#
+		}#
+	}#
+	names(assocs)<-thrshldNames#
+#
+	assocs[[1]][which(assocs[[1]]>0)]<-5#
+	assocs[[1]][which(assocs[[1]]<0)]<-2#
+	assocs[[1]][which(assocs[[1]]==0)]<-1#
+#
+	assocs[[2]][which(assocs[[2]]>0)]<-6#
+	assocs[[2]][which(assocs[[2]]<0)]<-3#
+	assocs[[2]][which(assocs[[2]]==0)]<-1#
+#
+	assocs[[3]][which(assocs[[3]]>0)]<-7#
+	assocs[[3]][which(assocs[[3]]<0)]<-4#
+	assocs[[3]][which(assocs[[3]]==0)]<-1#
+#
+	assocsComb<-assocs[[1]]#
+	assocsComb[which(assocs[[2]]!=1,arr.ind=T)]<-assocs[[2]][which(assocs[[2]]!=1,arr.ind=T)]#
+	assocsComb[which(assocs[[3]]!=1,arr.ind=T)]<-assocs[[3]][which(assocs[[3]]!=1,arr.ind=T)]#
+#
+	species_sorted<-names(sort(rowSums(assocsComb)))#
+	if (mod==2) {#
+		assocsComb_sorted<-assocsComb[species_sorted,]#
+	} else {#
+		assocsComb_sorted<-assocsComb[species_sorted,species_sorted]#
+	}#
+#
+	# värit: 1 nollat = valkonen, 2-4 negat = siniset, 5-7 posit = punaset#
+	colrs<-c("#ffffff", # valkonen#
+			"#b8dcff","#1a8cff","#004d99",	# siniset#
+			"#ffdcc4","#ff7214","#b34700")	# punaset#
+#
+	### all results for appendix#
+	##############################
+	if (whichfigs=="append") {#
+		if (mod==2) {#
+			pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=10,height=2.5)#
+				par(family="serif")#
+				image(z=assocsComb,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb), ny=ncol(assocsComb), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+				axis(side=2, at=seq(0,1,length.out=length(species[primSp])), labels=t(t(species[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+			dev.off()#
+		} else {#
+			pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=10,height=10) # appendix#
+				par(family="serif")#
+				image(z=assocsComb_sorted,col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted), ny=ncol(assocsComb_sorted), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted)), labels=t(t(species_sorted)), las=2, cex.axis=0.75)#
+			dev.off()#
+		}#
+	}#
+#
+	### selected results for ms#
+	#############################
+	if (whichfigs=="ms") {#
+		if (mod==2) {#
+			assocsComb_sorted[rownames(assocsComb_sorted)=="triabi",colnames(assocsComb_sorted)=="triabi"]<-1#
+			assocsComb_sorted[rownames(assocsComb_sorted)=="trifus",colnames(assocsComb_sorted)=="trifus"]<-1#
+			assocsComb_sorted[rownames(assocsComb_sorted)=="fompin",colnames(assocsComb_sorted)=="fompin"]<-1#
+			assocsComb_sorted[rownames(assocsComb_sorted)=="skeamo",colnames(assocsComb_sorted)=="skeamo"]<-1#
+		} else {#
+			diag(assocsComb_sorted)<-1#
+		}#
+#
+		# select species, for which R2>0.05#
+		load(file=paste("preds/predT2/colTjurs.RData",sep=""))#
+		selSp<-names(colTjurs[(colTjurs[,mod,3]>0.05),3,3])#
+#
+		# select primary colonisers#
+		primSp<-c(which(species=="triabi"),which(species=="trifus"),which(species=="skeamo"),which(species=="fompin"))#
+#
+		if (mod==2) {#
+			pdf(file=paste("figs/assocs_primCol_m",mod,".pdf",sep=""),bg="transparent",width=7,height=2.5)#
+				par(family="serif")#
+				image(z=assocsComb[selSp,],col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb[selSp,]), ny=ncol(assocsComb), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(selSp)), labels=selSp, las=2, cex.axis=0.75)#
+				axis(side=2, at=seq(0,1,length.out=length(species[primSp])), labels=t(t(species[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+			dev.off()#
+		} else {#
+			pdf(file=paste("figs/assocs_m",mod,".pdf",sep=""),bg="transparent",width=7,height=7) # appendix#
+				par(family="serif")#
+				image(z=assocsComb_sorted,col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted), ny=ncol(assocsComb_sorted), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted)), labels=t(t(species_sorted)), las=2, cex.axis=0.75)#
+			dev.off()#
+#
+			pdf(file=paste("figs/assocs_selSp_m",mod,".pdf",sep=""),bg="transparent",width=7,height=7)#
+				par(family="serif")#
+				image(z=assocsComb[selSp,selSp],col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb[selSp,selSp]), ny=ncol(assocsComb[selSp,selSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(selSp)), labels=selSp, las=2, cex.axis=0.75)#
+				axis(side=2, at=seq(0,1,length.out=length(selSp)), labels=selSp, las=2, cex.axis=0.75)#
+			dev.off()#
+#
+			pdf(file=paste("figs/assocs_primCol_m",mod,".pdf",sep=""),bg="transparent",width=7,height=2.5)#
+				par(family="serif")#
+				image(z=assocsComb[selSp,primSp],col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb[selSp,primSp]), ny=ncol(assocsComb[,primSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(selSp)), labels=selSp, las=2, cex.axis=0.75)#
+				axis(side=2, at=seq(0,1,length.out=length(species[primSp])), labels=t(t(species[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+			dev.off()#
+		}#
+	}#
+}
+selSp
+species_sorted[primSp]
+primSp<-c(which(species_sorted=="triabi"),which(species_sorted=="trifus"),which(species_sorted=="skeamo"),which(species_sorted=="fompin"))
+primSp
+species_sorted[primSp]
+selSp
+selSp
+Fonts<-rep(1,times=length(species_sorted))
+Fonts<-rep(1,times=length(species_sorted))
+names(Fonts)
+names(Fonts)<-species_sorted
+Fonts
+Fonts[selSp]
+Fonts[selSp]<-2
+Fonts
+Fonts<-rep(1,times=length(species_sorted))#
+				names(Fonts)<-species_sorted#
+				Fonts[selSp]<-2#
+				par(family="serif")#
+				image(z=assocsComb_sorted[,primSp],col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[,primSp]), ny=ncol(assocsComb_sorted[,primSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(assocsComb_sorted)), labels=assocsComb_sorted, las=2, cex.axis=0.75, font=Fonts)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted[primSp])), labels=t(t(species_sorted[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)
+image(z=assocsComb_sorted[,primSp],col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[,primSp]), ny=ncol(assocsComb_sorted[,primSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(assocsComb_sorted)), labels=species_sorted, las=2, cex.axis=0.75, font=Fonts)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted[primSp])), labels=t(t(species_sorted[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)
+mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)
+Fonts<-rep(1,times=length(species_sorted))#
+				names(Fonts)<-species_sorted#
+				Fonts[selSp]<-2#
+				par(family="serif")#
+				image(z=assocsComb_sorted[,primSp],col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[,primSp]), ny=ncol(assocsComb_sorted[,primSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75, font=Fonts)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted[primSp])), labels=t(t(species_sorted[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)
+Fonts
+axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75, font.axis=Fonts)
+species_sorted
+Fonts
+?axis
+axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75, font.axis=1)
+axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75, font.axis=2)
+species_sorted
+match(species_sorted,selSp)
+match(selSp,species_sorted)
+selSp
+species_sorted
+match(species_sorted[-selSp],species_sorted)
+-selSp
+match(selSp,species_sorted)
+1:length(species_sorted)
+1:length(species_sorted)[match(selSp,species_sorted)]
+c(1:length(species_sorted))[-match(selSp,species_sorted)]
+image(z=assocsComb_sorted[,primSp],col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[,primSp]), ny=ncol(assocsComb_sorted[,primSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=match(selSp,species_sorted), labels=species_sorted[-selSp], las=2, cex.axis=0.75, font.axis=1)#
+				axis(side=1, at=c(1:length(species_sorted))[-match(selSp,species_sorted)], labels=species_sorted[selSp], las=2, cex.axis=0.75, font.axis=2)
+axis(side=1, at=match(selSp,species_sorted), labels=species_sorted[-selSp], las=2, cex.axis=0.75, font.axis=1)
+axis(side=1, at=match(selSp,species_sorted), labels=species_sorted[selSp], las=2, cex.axis=0.75, font.axis=1)
+image(z=assocsComb_sorted[,primSp],col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[,primSp]), ny=ncol(assocsComb_sorted[,primSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=match(selSp,species_sorted), labels=species_sorted[selSp], las=2, cex.axis=0.75, font.axis=1)
+match(selSp,species_sorted)
+axis(side=1, at=seq(0,1,length.out=length(selSp))[match(selSp,species_sorted)], labels=species_sorted[selSp], las=2, cex.axis=0.75, font.axis=1)
+species_sorted[selSp]
+species_sorted
+selSp
+axis(side=1, at=seq(0,1,length.out=length(selSp))[match(selSp,species_sorted)], labels=selSp, las=2, cex.axis=0.75, font.axis=1)
+selSp
+seq(0,1,length.out=length(selSp))[match(selSp,species_sorted)]
+axis(side=1, at=seq(0,1,length.out=length(species_sorted))[match(selSp,species_sorted)], labels=selSp, las=2, cex.axis=0.75, font.axis=1)
+image(z=assocsComb_sorted[,primSp],col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[,primSp]), ny=ncol(assocsComb_sorted[,primSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[match(selSp,species_sorted)], labels=selSp, las=2, cex.axis=0.75, font.axis=1)
+par(family="serif")#
+				image(z=assocsComb_sorted[,primSp],col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[,primSp]), ny=ncol(assocsComb_sorted[,primSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[match(selSp,species_sorted)], labels=selSp, las=2, cex.axis=0.75, font.axis=2)
+c(1:length(species_sorted))[-match(selSp,species_sorted)]
+axis(side=1, at=seq(0,1,length.out=length(species_sorted))[c(1:length(species_sorted))[-match(selSp,species_sorted)]], labels=species_sorted[selSp], las=2, cex.axis=0.75, font.axis=1)
+species_sorted[-match(selSp,species_sorted)]
+axis(side=1, at=seq(0,1,length.out=length(species_sorted))[c(1:length(species_sorted))[-match(selSp,species_sorted)]], labels=species_sorted[-match(selSp,species_sorted)], las=2, cex.axis=0.75, font.axis=1)
+image(z=assocsComb_sorted[,primSp],col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[,primSp]), ny=ncol(assocsComb_sorted[,primSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[match(selSp,species_sorted)], labels=selSp, las=2, cex.axis=0.75, font.axis=2)#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[c(1:length(species_sorted))[-match(selSp,species_sorted)]], labels=species_sorted[-match(selSp,species_sorted)], las=2, cex.axis=0.75, font.axis=1)
+axis(side=2, at=seq(0,1,length.out=length(species_sorted[primSp])), labels=t(t(species_sorted[primSp])), las=2, cex.axis=0.75)
+mod
+pdf(file=paste("figs/assocs_primCol_m",mod,".pdf",sep=""),bg="transparent",width=7,height=2.5)#
+				par(family="serif")#
+				image(z=assocsComb_sorted[,primSp],col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[,primSp]), ny=ncol(assocsComb_sorted[,primSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[match(selSp,species_sorted)], labels=selSp, las=2, cex.axis=0.75, font.axis=2)#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[c(1:length(species_sorted))[-match(selSp,species_sorted)]], labels=species_sorted[-match(selSp,species_sorted)], las=2, cex.axis=0.75, font.axis=1)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted[primSp])), labels=t(t(species_sorted[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+			dev.off()
+thresholds<-c(0,0.75,0.85,0.95)#
+thrshldNames<-as.character(thresholds*100)#
+nullFlag<-"null"#
+whichfigs<-"ms" # "ms" or "append"#
+#
+####
+#
+null<-FALSE#
+#
+if (null) {#
+	assocs_null<-vector("list", 4) #
+	names(assocs_null)<-paste("model",2:5,sep="")#
+} else {#
+	assocs_full<-vector("list", 4) #
+	names(assocs_full)<-paste("model",2:5,sep="")#
+}#
+#
+for (mod in 2:5) {#
+#
+	# MODEL 2 or 3#
+	if (mod==2 | mod==3) {#
+		assocs_raw<-list()#
+		assocs_raw[[1]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A0",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[2]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A75",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[3]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A85",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[4]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A95",nullFlag[null],".csv",sep=""),header=FALSE)#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+		#diag(assocs_raw[[1]])	# pitäs palauttaa priori mallilla 3?#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+	}#
+#
+	# MODEL 4#
+	if (mod==4) {#
+		require(rmatio)#
+		require(R.matlab)#
+		betavAll<-read.mat(paste("fits/m4/params/betavAll",nullFlag[null],".mat",sep="")) #
+		betavAll<-betavAll[[1]]#
+		qvAll<-read.mat(paste("fits/m4/params/qvAll",nullFlag[null],".mat",sep="")) #
+		qvAll<-qvAll[[1]]#
+#
+		betaV<-array(NA,dim=list(dim(betavAll)[1],dim(betavAll)[2],dim(betavAll)[3]))#
+		for (i in 1:dim(betavAll)[3]) {#
+			betaV[,,i]<-betavAll[,,i]*qvAll[,,i]#
+		}#
+		betaVmeans<-apply(betaV,c(1,2),mean)#
+		qvSum<-apply(qvAll,c(1,2),sum)#
+		qvMeans<-qvSum/dim(qvAll)[3]#
+#
+		Pos<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+		Ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+		Pos[which(betavAll[,,1]>0,arr.ind=T)]<- 1#
+		Ng[which(betavAll[,,1]<0,arr.ind=T)]<- -1#
+		for (i in 2:dim(betavAll)[3]) {#
+			pos<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			pos[which(betavAll[,,i]>0,arr.ind=T)]<- 1#
+			ng[which(betavAll[,,i]<0,arr.ind=T)]<- -1#
+			Pos<-Pos+pos#
+			Ng<-Ng+ng#
+		}#
+		supportPos<-abs(Pos)/(qvMeans*dim(betavAll)[3])#
+		supportNg<-abs(Ng)/(qvMeans*dim(betavAll)[3])#
+		#supportPos<-abs(Pos)/dim(betavAll)[3]#
+		#supportNg<-abs(Ng)/dim(betavAll)[3]#
+		support<-supportPos#
+		support[which(supportNg>0.5,arr.ind=T)]<-supportNg[which(supportNg>0.5,arr.ind=T)]#
+		support[which(support=="Inf")]<-0	#
+#
+		betaVmeansThrs<-betaVmeans#
+		qvThrsh<-0.1#
+		betaVmeansThrs[which(qvMeans<qvThrsh,arr.ind=T)]<-0#
+		rownames(betaVmeansThrs)<-species#
+		colnames(betaVmeansThrs)<-rownames(betaVmeansThrs)#
+#
+		assocs_raw<-list()#
+		for (i in 1:length(thresholds)) {#
+			assocs_raw[[i]]<-matrix(0,nrow(support),ncol(support))#
+			assocs_raw[[i]][which(support>thresholds[i],arr.ind=T)]<-betaVmeansThrs[which(support>thresholds[i],arr.ind=T)]#
+		}#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+#
+	# 	betaVmeans50<-betaVmeans#
+	# 	betaVmeans50[which(qvMeans<0.5,arr.ind=T)]<-0#
+	# 	rownames(betaVmeans50)<-species#
+	# 	colnames(betaVmeans50)<-rownames(betaVmeans50)#
+	# #
+	# 	betaVmeans75<-betaVmeans#
+	# 	betaVmeans75[which(qvMeans<0.75,arr.ind=T)]<-0#
+	# 	rownames(betaVmeans75)<-species#
+	# 	colnames(betaVmeans75)<-rownames(betaVmeans75)#
+	# #
+	# 	assocs_raw<-list()#
+	# 	assocs_raw[[1]]<-betaVmeans25#
+	# 	assocs_raw[[2]]<-betaVmeans50#
+	# 	assocs_raw[[3]]<-betaVmeans75#
+	}#
+#
+	# MODEL 5#
+	if (mod==5) {#
+		A<-read.mat(paste("fits/m5/params/A",nullFlag[null],".mat",sep=""))#
+		A<-A[[1]][[1]]#
+#
+		Pos<-matrix(0,dim(A[[1]])[1],dim(A[[1]])[2])#
+		Ng<-matrix(0,dim(A[[1]])[1],dim(A[[1]])[2])#
+		Pos[which(A[[1]]>0,arr.ind=T)]<- 1#
+		Ng[which(A[[1]]<0,arr.ind=T)]<- -1#
+		for (i in 2:dim(betavAll)[3]) {#
+			pos<-matrix(0,dim(A[[1]])[1],dim(A[[1]])[2])#
+			ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			pos[which(A[[i]]>0,arr.ind=T)]<- 1#
+			ng[which(A[[i]]<0,arr.ind=T)]<- -1#
+			Pos<-Pos+pos#
+			Ng<-Ng+ng#
+		}#
+		supportPos<-abs(Pos)/length(A)#
+		supportNg<-abs(Ng)/length(A)#
+		support<-supportPos#
+		support[which(supportNg>0.5,arr.ind=T)]<-supportNg[which(supportNg>0.5,arr.ind=T)]#
+#
+		Aarr<-simplify2array(A)#
+		Ameans<-apply(Aarr,c(1,2),mean)#
+#
+		assocs_raw<-list()#
+		for (i in 1:length(thresholds)) {#
+			assocs_raw[[i]]<-matrix(0,nrow(support),ncol(support))#
+			assocs_raw[[i]][which(support>thresholds[i],arr.ind=T)]<-Ameans[which(support>thresholds[i],arr.ind=T)]#
+		}#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+	}#
+	######
+#
+	# select primary colonisers#
+	primSp<-c(which(species=="triabi"),which(species=="trifus"),which(species=="skeamo"),which(species=="fompin"))#
+	# select species, for which R2>0.05#
+	load(file=paste("preds/predT2/colTjurs.RData",sep=""))#
+	selSp<-names(colTjurs[(colTjurs[,mod,3]>0.05),3,3])#
+	selSpNo<-which(species==selSp[1])#
+	for (i in 2:length(selSp)) {#
+		selSpNo<-c(selSpNo,which(species==selSp[i]))#
+	}#
+#
+	# quartz()#
+	# par(family="sans")#
+	# plot(assocs_null$model5[primSp,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],pch=16)#
+	# points(assocs_null$model4[primSp,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],type="l",col="red",lwd=2)#
+	# points(assocs_null$model3[primSp,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],col="grey50",pch=16)#
+	# points(assocs_null$model2[,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],col="blue",pch=16)#
+#
+	######
+#
+	assocs<-list()#
+	if (mod==2) {#
+		for (i in 1:length(assocs_raw)) {#
+			colnames(assocs_raw[[i]])<-species#
+			rownames(assocs_raw[[i]])<-c('triabi','trifus','skeamo','fompin')#
+			assocs[[i]]<-t(assocs_raw[[i]])#
+		}#
+	} else {#
+		for (i in 1:length(assocs_raw)) {#
+			colnames(assocs_raw[[i]])<-species#
+			rownames(assocs_raw[[i]])<-species#
+			assocs[[i]]<-t(assocs_raw[[i]])#
+		}#
+	}#
+	names(assocs)<-thrshldNames#
+#
+	assocs[[1]][which(assocs[[1]]>0)]<-5#
+	assocs[[1]][which(assocs[[1]]<0)]<-2#
+	assocs[[1]][which(assocs[[1]]==0)]<-1#
+#
+	assocs[[2]][which(assocs[[2]]>0)]<-6#
+	assocs[[2]][which(assocs[[2]]<0)]<-3#
+	assocs[[2]][which(assocs[[2]]==0)]<-1#
+#
+	assocs[[3]][which(assocs[[3]]>0)]<-7#
+	assocs[[3]][which(assocs[[3]]<0)]<-4#
+	assocs[[3]][which(assocs[[3]]==0)]<-1#
+#
+	assocsComb<-assocs[[1]]#
+	assocsComb[which(assocs[[2]]!=1,arr.ind=T)]<-assocs[[2]][which(assocs[[2]]!=1,arr.ind=T)]#
+	assocsComb[which(assocs[[3]]!=1,arr.ind=T)]<-assocs[[3]][which(assocs[[3]]!=1,arr.ind=T)]#
+#
+	species_sorted<-names(sort(rowSums(assocsComb)))#
+	if (mod==2) {#
+		assocsComb_sorted<-assocsComb[species_sorted,]#
+	} else {#
+		assocsComb_sorted<-assocsComb[species_sorted,species_sorted]#
+	}#
+#
+	# värit: 1 nollat = valkonen, 2-4 negat = siniset, 5-7 posit = punaset#
+	colrs<-c("#ffffff", # valkonen#
+			"#b8dcff","#1a8cff","#004d99",	# siniset#
+			"#ffdcc4","#ff7214","#b34700")	# punaset#
+#
+	### all results for appendix#
+	##############################
+	if (whichfigs=="append") {#
+		if (mod==2) {#
+			pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=10,height=2.5)#
+				par(family="serif")#
+				image(z=assocsComb,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb), ny=ncol(assocsComb), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+				axis(side=2, at=seq(0,1,length.out=length(species[primSp])), labels=t(t(species[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+			dev.off()#
+		} else {#
+			pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=10,height=10) # appendix#
+				par(family="serif")#
+				image(z=assocsComb_sorted,col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted), ny=ncol(assocsComb_sorted), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted)), labels=t(t(species_sorted)), las=2, cex.axis=0.75)#
+			dev.off()#
+		}#
+	}#
+#
+	### selected results for ms#
+	#############################
+	if (whichfigs=="ms") {#
+		if (mod==2) {#
+			assocsComb_sorted[rownames(assocsComb_sorted)=="triabi",colnames(assocsComb_sorted)=="triabi"]<-1#
+			assocsComb_sorted[rownames(assocsComb_sorted)=="trifus",colnames(assocsComb_sorted)=="trifus"]<-1#
+			assocsComb_sorted[rownames(assocsComb_sorted)=="fompin",colnames(assocsComb_sorted)=="fompin"]<-1#
+			assocsComb_sorted[rownames(assocsComb_sorted)=="skeamo",colnames(assocsComb_sorted)=="skeamo"]<-1#
+		} else {#
+			diag(assocsComb_sorted)<-1#
+		}#
+#
+		# select species, for which R2>0.05#
+		load(file=paste("preds/predT2/colTjurs.RData",sep=""))#
+		selSp<-names(colTjurs[(colTjurs[,mod,3]>0.05),3,3])#
+#
+		# select primary colonisers#
+		primSp<-c(which(species_sorted=="triabi"),which(species_sorted=="trifus"),which(species_sorted=="skeamo"),which(species_sorted=="fompin"))#
+#
+		if (mod==2) {#
+			pdf(file=paste("figs/assocs_primCol_m",mod,".pdf",sep=""),bg="transparent",width=7,height=2.5)#
+				par(family="serif")#
+				image(z=assocsComb_sorted[selSp,],col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[selSp,]), ny=ncol(assocsComb_sorted), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[match(selSp,species_sorted)], labels=selSp, las=2, cex.axis=0.75, font.axis=2)#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[c(1:length(species_sorted))[-match(selSp,species_sorted)]], labels=species_sorted[-match(selSp,species_sorted)], las=2, cex.axis=0.75, font.axis=1)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted[primSp])), labels=t(t(species_sorted[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+			dev.off()#
+		} else {#
+			pdf(file=paste("figs/assocs_m",mod,".pdf",sep=""),bg="transparent",width=7,height=7) # appendix#
+				par(family="serif")#
+				image(z=assocsComb_sorted,col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted), ny=ncol(assocsComb_sorted), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted)), labels=t(t(species_sorted)), las=2, cex.axis=0.75)#
+			dev.off()#
+#
+			pdf(file=paste("figs/assocs_selSp_m",mod,".pdf",sep=""),bg="transparent",width=7,height=7)#
+				par(family="serif")#
+				image(z=assocsComb_sorted[selSp,selSp],col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[selSp,selSp]), ny=ncol(assocsComb_sorted[selSp,selSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(selSp)), labels=selSp, las=2, cex.axis=0.75)#
+				axis(side=2, at=seq(0,1,length.out=length(selSp)), labels=selSp, las=2, cex.axis=0.75)#
+			dev.off()#
+#
+			pdf(file=paste("figs/assocs_primCol_m",mod,".pdf",sep=""),bg="transparent",width=7,height=2.5)#
+				par(family="serif")#
+				image(z=assocsComb_sorted[,primSp],col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[,primSp]), ny=ncol(assocsComb_sorted[,primSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[match(selSp,species_sorted)], labels=selSp, las=2, cex.axis=0.75, font.axis=2)#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[c(1:length(species_sorted))[-match(selSp,species_sorted)]], labels=species_sorted[-match(selSp,species_sorted)], las=2, cex.axis=0.75, font.axis=1)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted[primSp])), labels=t(t(species_sorted[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+			dev.off()#
+		}#
+	}#
+}
+thresholds<-c(0,0.75,0.85,0.95)#
+thrshldNames<-as.character(thresholds*100)#
+nullFlag<-"null"#
+whichfigs<-"ms" # "ms" or "append"#
+#
+####
+#
+null<-FALSE#
+#
+if (null) {#
+	assocs_null<-vector("list", 4) #
+	names(assocs_null)<-paste("model",2:5,sep="")#
+} else {#
+	assocs_full<-vector("list", 4) #
+	names(assocs_full)<-paste("model",2:5,sep="")#
+}#
+#
+for (mod in 2:5) {#
+#
+	# MODEL 2 or 3#
+	if (mod==2 | mod==3) {#
+		assocs_raw<-list()#
+		assocs_raw[[1]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A0",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[2]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A75",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[3]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A85",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[4]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A95",nullFlag[null],".csv",sep=""),header=FALSE)#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+		#diag(assocs_raw[[1]])	# pitäs palauttaa priori mallilla 3?#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+	}#
+#
+	# MODEL 4#
+	if (mod==4) {#
+		require(rmatio)#
+		require(R.matlab)#
+		betavAll<-read.mat(paste("fits/m4/params/betavAll",nullFlag[null],".mat",sep="")) #
+		betavAll<-betavAll[[1]]#
+		qvAll<-read.mat(paste("fits/m4/params/qvAll",nullFlag[null],".mat",sep="")) #
+		qvAll<-qvAll[[1]]#
+#
+		betaV<-array(NA,dim=list(dim(betavAll)[1],dim(betavAll)[2],dim(betavAll)[3]))#
+		for (i in 1:dim(betavAll)[3]) {#
+			betaV[,,i]<-betavAll[,,i]*qvAll[,,i]#
+		}#
+		betaVmeans<-apply(betaV,c(1,2),mean)#
+		qvSum<-apply(qvAll,c(1,2),sum)#
+		qvMeans<-qvSum/dim(qvAll)[3]#
+#
+		Pos<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+		Ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+		Pos[which(betavAll[,,1]>0,arr.ind=T)]<- 1#
+		Ng[which(betavAll[,,1]<0,arr.ind=T)]<- -1#
+		for (i in 2:dim(betavAll)[3]) {#
+			pos<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			pos[which(betavAll[,,i]>0,arr.ind=T)]<- 1#
+			ng[which(betavAll[,,i]<0,arr.ind=T)]<- -1#
+			Pos<-Pos+pos#
+			Ng<-Ng+ng#
+		}#
+		supportPos<-abs(Pos)/(qvMeans*dim(betavAll)[3])#
+		supportNg<-abs(Ng)/(qvMeans*dim(betavAll)[3])#
+		#supportPos<-abs(Pos)/dim(betavAll)[3]#
+		#supportNg<-abs(Ng)/dim(betavAll)[3]#
+		support<-supportPos#
+		support[which(supportNg>0.5,arr.ind=T)]<-supportNg[which(supportNg>0.5,arr.ind=T)]#
+		support[which(support=="Inf")]<-0	#
+#
+		betaVmeansThrs<-betaVmeans#
+		qvThrsh<-0.1#
+		betaVmeansThrs[which(qvMeans<qvThrsh,arr.ind=T)]<-0#
+		rownames(betaVmeansThrs)<-species#
+		colnames(betaVmeansThrs)<-rownames(betaVmeansThrs)#
+#
+		assocs_raw<-list()#
+		for (i in 1:length(thresholds)) {#
+			assocs_raw[[i]]<-matrix(0,nrow(support),ncol(support))#
+			assocs_raw[[i]][which(support>thresholds[i],arr.ind=T)]<-betaVmeansThrs[which(support>thresholds[i],arr.ind=T)]#
+		}#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+#
+	# 	betaVmeans50<-betaVmeans#
+	# 	betaVmeans50[which(qvMeans<0.5,arr.ind=T)]<-0#
+	# 	rownames(betaVmeans50)<-species#
+	# 	colnames(betaVmeans50)<-rownames(betaVmeans50)#
+	# #
+	# 	betaVmeans75<-betaVmeans#
+	# 	betaVmeans75[which(qvMeans<0.75,arr.ind=T)]<-0#
+	# 	rownames(betaVmeans75)<-species#
+	# 	colnames(betaVmeans75)<-rownames(betaVmeans75)#
+	# #
+	# 	assocs_raw<-list()#
+	# 	assocs_raw[[1]]<-betaVmeans25#
+	# 	assocs_raw[[2]]<-betaVmeans50#
+	# 	assocs_raw[[3]]<-betaVmeans75#
+	}#
+#
+	# MODEL 5#
+	if (mod==5) {#
+		A<-read.mat(paste("fits/m5/params/A",nullFlag[null],".mat",sep=""))#
+		A<-A[[1]][[1]]#
+#
+		Pos<-matrix(0,dim(A[[1]])[1],dim(A[[1]])[2])#
+		Ng<-matrix(0,dim(A[[1]])[1],dim(A[[1]])[2])#
+		Pos[which(A[[1]]>0,arr.ind=T)]<- 1#
+		Ng[which(A[[1]]<0,arr.ind=T)]<- -1#
+		for (i in 2:dim(betavAll)[3]) {#
+			pos<-matrix(0,dim(A[[1]])[1],dim(A[[1]])[2])#
+			ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			pos[which(A[[i]]>0,arr.ind=T)]<- 1#
+			ng[which(A[[i]]<0,arr.ind=T)]<- -1#
+			Pos<-Pos+pos#
+			Ng<-Ng+ng#
+		}#
+		supportPos<-abs(Pos)/length(A)#
+		supportNg<-abs(Ng)/length(A)#
+		support<-supportPos#
+		support[which(supportNg>0.5,arr.ind=T)]<-supportNg[which(supportNg>0.5,arr.ind=T)]#
+#
+		Aarr<-simplify2array(A)#
+		Ameans<-apply(Aarr,c(1,2),mean)#
+#
+		assocs_raw<-list()#
+		for (i in 1:length(thresholds)) {#
+			assocs_raw[[i]]<-matrix(0,nrow(support),ncol(support))#
+			assocs_raw[[i]][which(support>thresholds[i],arr.ind=T)]<-Ameans[which(support>thresholds[i],arr.ind=T)]#
+		}#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+	}#
+	######
+#
+	# select primary colonisers#
+	primSp<-c(which(species=="triabi"),which(species=="trifus"),which(species=="skeamo"),which(species=="fompin"))#
+	# select species, for which R2>0.05#
+	load(file=paste("preds/predT2/colTjurs.RData",sep=""))#
+	selSp<-names(colTjurs[(colTjurs[,mod,3]>0.05),3,3])#
+	selSpNo<-which(species==selSp[1])#
+	for (i in 2:length(selSp)) {#
+		selSpNo<-c(selSpNo,which(species==selSp[i]))#
+	}#
+#
+	# quartz()#
+	# par(family="sans")#
+	# plot(assocs_null$model5[primSp,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],pch=16)#
+	# points(assocs_null$model4[primSp,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],type="l",col="red",lwd=2)#
+	# points(assocs_null$model3[primSp,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],col="grey50",pch=16)#
+	# points(assocs_null$model2[,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],col="blue",pch=16)#
+#
+	######
+#
+	assocs<-list()#
+	if (mod==2) {#
+		for (i in 1:length(assocs_raw)) {#
+			colnames(assocs_raw[[i]])<-species#
+			rownames(assocs_raw[[i]])<-c('triabi','trifus','skeamo','fompin')#
+			assocs[[i]]<-t(assocs_raw[[i]])#
+		}#
+	} else {#
+		for (i in 1:length(assocs_raw)) {#
+			colnames(assocs_raw[[i]])<-species#
+			rownames(assocs_raw[[i]])<-species#
+			assocs[[i]]<-t(assocs_raw[[i]])#
+		}#
+	}#
+	names(assocs)<-thrshldNames#
+#
+	assocs[[1]][which(assocs[[1]]>0)]<-5#
+	assocs[[1]][which(assocs[[1]]<0)]<-2#
+	assocs[[1]][which(assocs[[1]]==0)]<-1#
+#
+	assocs[[2]][which(assocs[[2]]>0)]<-6#
+	assocs[[2]][which(assocs[[2]]<0)]<-3#
+	assocs[[2]][which(assocs[[2]]==0)]<-1#
+#
+	assocs[[3]][which(assocs[[3]]>0)]<-7#
+	assocs[[3]][which(assocs[[3]]<0)]<-4#
+	assocs[[3]][which(assocs[[3]]==0)]<-1#
+#
+	assocsComb<-assocs[[1]]#
+	assocsComb[which(assocs[[2]]!=1,arr.ind=T)]<-assocs[[2]][which(assocs[[2]]!=1,arr.ind=T)]#
+	assocsComb[which(assocs[[3]]!=1,arr.ind=T)]<-assocs[[3]][which(assocs[[3]]!=1,arr.ind=T)]#
+#
+	species_sorted<-names(sort(rowSums(assocsComb)))#
+	if (mod==2) {#
+		assocsComb_sorted<-assocsComb[species_sorted,]#
+	} else {#
+		assocsComb_sorted<-assocsComb[species_sorted,species_sorted]#
+	}#
+#
+	# värit: 1 nollat = valkonen, 2-4 negat = siniset, 5-7 posit = punaset#
+	colrs<-c("#ffffff", # valkonen#
+			"#b8dcff","#1a8cff","#004d99",	# siniset#
+			"#ffdcc4","#ff7214","#b34700")	# punaset#
+#
+	### all results for appendix#
+	##############################
+	if (whichfigs=="append") {#
+		if (mod==2) {#
+			pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=10,height=2.5)#
+				par(family="serif")#
+				image(z=assocsComb,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb), ny=ncol(assocsComb), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+				axis(side=2, at=seq(0,1,length.out=length(species[primSp])), labels=t(t(species[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+			dev.off()#
+		} else {#
+			pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=10,height=10) # appendix#
+				par(family="serif")#
+				image(z=assocsComb_sorted,col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted), ny=ncol(assocsComb_sorted), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted)), labels=t(t(species_sorted)), las=2, cex.axis=0.75)#
+			dev.off()#
+		}#
+	}#
+#
+	### selected results for ms#
+	#############################
+	if (whichfigs=="ms") {#
+		if (mod==2) {#
+			assocsComb_sorted[rownames(assocsComb_sorted)=="triabi",colnames(assocsComb_sorted)=="triabi"]<-1#
+			assocsComb_sorted[rownames(assocsComb_sorted)=="trifus",colnames(assocsComb_sorted)=="trifus"]<-1#
+			assocsComb_sorted[rownames(assocsComb_sorted)=="fompin",colnames(assocsComb_sorted)=="fompin"]<-1#
+			assocsComb_sorted[rownames(assocsComb_sorted)=="skeamo",colnames(assocsComb_sorted)=="skeamo"]<-1#
+		} else {#
+			diag(assocsComb_sorted)<-1#
+		}#
+#
+		# select species, for which R2>0.05#
+		load(file=paste("preds/predT2/colTjurs.RData",sep=""))#
+		selSp<-names(colTjurs[(colTjurs[,mod,3]>0.05),3,3])#
+#
+		# select primary colonisers#
+		primSp<-c(which(species_sorted=="triabi"),which(species_sorted=="trifus"),which(species_sorted=="skeamo"),which(species_sorted=="fompin"))#
+#
+		if (mod==2) {#
+			pdf(file=paste("figs/assocs_primCol_m",mod,".pdf",sep=""),bg="transparent",width=7,height=2.5)#
+				par(family="serif")#
+				image(z=assocsComb_sorted,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted), ny=ncol(assocsComb_sorted), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[match(selSp,species_sorted)], labels=selSp, las=2, cex.axis=0.75, font.axis=2)#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[c(1:length(species_sorted))[-match(selSp,species_sorted)]], labels=species_sorted[-match(selSp,species_sorted)], las=2, cex.axis=0.75, font.axis=1)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted[primSp])), labels=t(t(species_sorted[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+			dev.off()#
+		} else {#
+			pdf(file=paste("figs/assocs_m",mod,".pdf",sep=""),bg="transparent",width=7,height=7) # appendix#
+				par(family="serif")#
+				image(z=assocsComb_sorted,col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted), ny=ncol(assocsComb_sorted), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted)), labels=t(t(species_sorted)), las=2, cex.axis=0.75)#
+			dev.off()#
+#
+			pdf(file=paste("figs/assocs_selSp_m",mod,".pdf",sep=""),bg="transparent",width=7,height=7)#
+				par(family="serif")#
+				image(z=assocsComb_sorted[selSp,selSp],col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[selSp,selSp]), ny=ncol(assocsComb_sorted[selSp,selSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(selSp)), labels=selSp, las=2, cex.axis=0.75)#
+				axis(side=2, at=seq(0,1,length.out=length(selSp)), labels=selSp, las=2, cex.axis=0.75)#
+			dev.off()#
+#
+			pdf(file=paste("figs/assocs_primCol_m",mod,".pdf",sep=""),bg="transparent",width=7,height=2.5)#
+				par(family="serif")#
+				image(z=assocsComb_sorted[,primSp],col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[,primSp]), ny=ncol(assocsComb_sorted[,primSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[match(selSp,species_sorted)], labels=selSp, las=2, cex.axis=0.75, font.axis=2)#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[c(1:length(species_sorted))[-match(selSp,species_sorted)]], labels=species_sorted[-match(selSp,species_sorted)], las=2, cex.axis=0.75, font.axis=1)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted[primSp])), labels=t(t(species_sorted[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+			dev.off()#
+		}#
+	}#
+}
+pdf(file=paste("figs/assocs_primCol_m",mod,".pdf",sep=""),bg="transparent",width=7.5,height=2.5)#
+				par(family="serif")#
+				image(z=assocsComb_sorted[,primSp],col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[,primSp]), ny=ncol(assocsComb_sorted[,primSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[match(selSp,species_sorted)], labels=selSp, las=2, cex.axis=0.75, font.axis=2)#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[c(1:length(species_sorted))[-match(selSp,species_sorted)]], labels=species_sorted[-match(selSp,species_sorted)], las=2, cex.axis=0.75, font.axis=1)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted[primSp])), labels=t(t(species_sorted[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+			dev.off()
+pdf(file=paste("figs/assocs_primCol_m",mod,".pdf",sep=""),bg="transparent",width=8,height=2.5)#
+				par(family="serif")#
+				image(z=assocsComb_sorted[,primSp],col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[,primSp]), ny=ncol(assocsComb_sorted[,primSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[match(selSp,species_sorted)], labels=selSp, las=2, cex.axis=0.75, font.axis=2)#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[c(1:length(species_sorted))[-match(selSp,species_sorted)]], labels=species_sorted[-match(selSp,species_sorted)], las=2, cex.axis=0.75, font.axis=1)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted[primSp])), labels=t(t(species_sorted[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+			dev.off()
+pdf(file=paste("figs/assocs_primCol_m",mod,".pdf",sep=""),bg="transparent",width=8.5,height=2.5)#
+				par(family="serif")#
+				image(z=assocsComb_sorted[,primSp],col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[,primSp]), ny=ncol(assocsComb_sorted[,primSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[match(selSp,species_sorted)], labels=selSp, las=2, cex.axis=0.75, font.axis=2)#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[c(1:length(species_sorted))[-match(selSp,species_sorted)]], labels=species_sorted[-match(selSp,species_sorted)], las=2, cex.axis=0.75, font.axis=1)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted[primSp])), labels=t(t(species_sorted[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+			dev.off()
+thresholds<-c(0,0.75,0.85,0.95)#
+thrshldNames<-as.character(thresholds*100)#
+nullFlag<-"null"#
+whichfigs<-"ms" # "ms" or "append"#
+#
+####
+#
+null<-FALSE#
+#
+if (null) {#
+	assocs_null<-vector("list", 4) #
+	names(assocs_null)<-paste("model",2:5,sep="")#
+} else {#
+	assocs_full<-vector("list", 4) #
+	names(assocs_full)<-paste("model",2:5,sep="")#
+}#
+#
+for (mod in 2:5) {#
+#
+	# MODEL 2 or 3#
+	if (mod==2 | mod==3) {#
+		assocs_raw<-list()#
+		assocs_raw[[1]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A0",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[2]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A75",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[3]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A85",nullFlag[null],".csv",sep=""),header=FALSE)#
+		assocs_raw[[4]]<-read.csv(file=paste("fits/m",mod,"/params/d3_m",mod,"_A95",nullFlag[null],".csv",sep=""),header=FALSE)#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+		#diag(assocs_raw[[1]])	# pitäs palauttaa priori mallilla 3?#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+	}#
+#
+	# MODEL 4#
+	if (mod==4) {#
+		require(rmatio)#
+		require(R.matlab)#
+		betavAll<-read.mat(paste("fits/m4/params/betavAll",nullFlag[null],".mat",sep="")) #
+		betavAll<-betavAll[[1]]#
+		qvAll<-read.mat(paste("fits/m4/params/qvAll",nullFlag[null],".mat",sep="")) #
+		qvAll<-qvAll[[1]]#
+#
+		betaV<-array(NA,dim=list(dim(betavAll)[1],dim(betavAll)[2],dim(betavAll)[3]))#
+		for (i in 1:dim(betavAll)[3]) {#
+			betaV[,,i]<-betavAll[,,i]*qvAll[,,i]#
+		}#
+		betaVmeans<-apply(betaV,c(1,2),mean)#
+		qvSum<-apply(qvAll,c(1,2),sum)#
+		qvMeans<-qvSum/dim(qvAll)[3]#
+#
+		Pos<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+		Ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+		Pos[which(betavAll[,,1]>0,arr.ind=T)]<- 1#
+		Ng[which(betavAll[,,1]<0,arr.ind=T)]<- -1#
+		for (i in 2:dim(betavAll)[3]) {#
+			pos<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			pos[which(betavAll[,,i]>0,arr.ind=T)]<- 1#
+			ng[which(betavAll[,,i]<0,arr.ind=T)]<- -1#
+			Pos<-Pos+pos#
+			Ng<-Ng+ng#
+		}#
+		supportPos<-abs(Pos)/(qvMeans*dim(betavAll)[3])#
+		supportNg<-abs(Ng)/(qvMeans*dim(betavAll)[3])#
+		#supportPos<-abs(Pos)/dim(betavAll)[3]#
+		#supportNg<-abs(Ng)/dim(betavAll)[3]#
+		support<-supportPos#
+		support[which(supportNg>0.5,arr.ind=T)]<-supportNg[which(supportNg>0.5,arr.ind=T)]#
+		support[which(support=="Inf")]<-0	#
+#
+		betaVmeansThrs<-betaVmeans#
+		qvThrsh<-0.1#
+		betaVmeansThrs[which(qvMeans<qvThrsh,arr.ind=T)]<-0#
+		rownames(betaVmeansThrs)<-species#
+		colnames(betaVmeansThrs)<-rownames(betaVmeansThrs)#
+#
+		assocs_raw<-list()#
+		for (i in 1:length(thresholds)) {#
+			assocs_raw[[i]]<-matrix(0,nrow(support),ncol(support))#
+			assocs_raw[[i]][which(support>thresholds[i],arr.ind=T)]<-betaVmeansThrs[which(support>thresholds[i],arr.ind=T)]#
+		}#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+#
+	# 	betaVmeans50<-betaVmeans#
+	# 	betaVmeans50[which(qvMeans<0.5,arr.ind=T)]<-0#
+	# 	rownames(betaVmeans50)<-species#
+	# 	colnames(betaVmeans50)<-rownames(betaVmeans50)#
+	# #
+	# 	betaVmeans75<-betaVmeans#
+	# 	betaVmeans75[which(qvMeans<0.75,arr.ind=T)]<-0#
+	# 	rownames(betaVmeans75)<-species#
+	# 	colnames(betaVmeans75)<-rownames(betaVmeans75)#
+	# #
+	# 	assocs_raw<-list()#
+	# 	assocs_raw[[1]]<-betaVmeans25#
+	# 	assocs_raw[[2]]<-betaVmeans50#
+	# 	assocs_raw[[3]]<-betaVmeans75#
+	}#
+#
+	# MODEL 5#
+	if (mod==5) {#
+		A<-read.mat(paste("fits/m5/params/A",nullFlag[null],".mat",sep=""))#
+		A<-A[[1]][[1]]#
+#
+		Pos<-matrix(0,dim(A[[1]])[1],dim(A[[1]])[2])#
+		Ng<-matrix(0,dim(A[[1]])[1],dim(A[[1]])[2])#
+		Pos[which(A[[1]]>0,arr.ind=T)]<- 1#
+		Ng[which(A[[1]]<0,arr.ind=T)]<- -1#
+		for (i in 2:dim(betavAll)[3]) {#
+			pos<-matrix(0,dim(A[[1]])[1],dim(A[[1]])[2])#
+			ng<-matrix(0,dim(betavAll)[1],dim(betavAll)[2])#
+			pos[which(A[[i]]>0,arr.ind=T)]<- 1#
+			ng[which(A[[i]]<0,arr.ind=T)]<- -1#
+			Pos<-Pos+pos#
+			Ng<-Ng+ng#
+		}#
+		supportPos<-abs(Pos)/length(A)#
+		supportNg<-abs(Ng)/length(A)#
+		support<-supportPos#
+		support[which(supportNg>0.5,arr.ind=T)]<-supportNg[which(supportNg>0.5,arr.ind=T)]#
+#
+		Aarr<-simplify2array(A)#
+		Ameans<-apply(Aarr,c(1,2),mean)#
+#
+		assocs_raw<-list()#
+		for (i in 1:length(thresholds)) {#
+			assocs_raw[[i]]<-matrix(0,nrow(support),ncol(support))#
+			assocs_raw[[i]][which(support>thresholds[i],arr.ind=T)]<-Ameans[which(support>thresholds[i],arr.ind=T)]#
+		}#
+		names(assocs_raw)<-thrshldNames#
+		assocs_raw<-lapply(assocs_raw,as.matrix)#
+#
+		if (null) {#
+			assocs_null[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		} else {#
+			assocs_full[[paste("model",mod,sep="")]]<-simplify2array(assocs_raw)#
+		}#
+	}#
+	######
+#
+	# select primary colonisers#
+	primSp<-c(which(species=="triabi"),which(species=="trifus"),which(species=="skeamo"),which(species=="fompin"))#
+	# select species, for which R2>0.05#
+	load(file=paste("preds/predT2/colTjurs.RData",sep=""))#
+	selSp<-names(colTjurs[(colTjurs[,mod,3]>0.05),3,3])#
+	selSpNo<-which(species==selSp[1])#
+	for (i in 2:length(selSp)) {#
+		selSpNo<-c(selSpNo,which(species==selSp[i]))#
+	}#
+#
+	# quartz()#
+	# par(family="sans")#
+	# plot(assocs_null$model5[primSp,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],pch=16)#
+	# points(assocs_null$model4[primSp,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],type="l",col="red",lwd=2)#
+	# points(assocs_null$model3[primSp,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],col="grey50",pch=16)#
+	# points(assocs_null$model2[,selSpNo,1],x=assocs_null$model4[primSp,selSpNo,1],col="blue",pch=16)#
+#
+	######
+#
+	assocs<-list()#
+	if (mod==2) {#
+		for (i in 1:length(assocs_raw)) {#
+			colnames(assocs_raw[[i]])<-species#
+			rownames(assocs_raw[[i]])<-c('triabi','trifus','skeamo','fompin')#
+			assocs[[i]]<-t(assocs_raw[[i]])#
+		}#
+	} else {#
+		for (i in 1:length(assocs_raw)) {#
+			colnames(assocs_raw[[i]])<-species#
+			rownames(assocs_raw[[i]])<-species#
+			assocs[[i]]<-t(assocs_raw[[i]])#
+		}#
+	}#
+	names(assocs)<-thrshldNames#
+#
+	assocs[[1]][which(assocs[[1]]>0)]<-5#
+	assocs[[1]][which(assocs[[1]]<0)]<-2#
+	assocs[[1]][which(assocs[[1]]==0)]<-1#
+#
+	assocs[[2]][which(assocs[[2]]>0)]<-6#
+	assocs[[2]][which(assocs[[2]]<0)]<-3#
+	assocs[[2]][which(assocs[[2]]==0)]<-1#
+#
+	assocs[[3]][which(assocs[[3]]>0)]<-7#
+	assocs[[3]][which(assocs[[3]]<0)]<-4#
+	assocs[[3]][which(assocs[[3]]==0)]<-1#
+#
+	assocsComb<-assocs[[1]]#
+	assocsComb[which(assocs[[2]]!=1,arr.ind=T)]<-assocs[[2]][which(assocs[[2]]!=1,arr.ind=T)]#
+	assocsComb[which(assocs[[3]]!=1,arr.ind=T)]<-assocs[[3]][which(assocs[[3]]!=1,arr.ind=T)]#
+#
+	species_sorted<-names(sort(rowSums(assocsComb)))#
+	if (mod==2) {#
+		assocsComb_sorted<-assocsComb[species_sorted,]#
+	} else {#
+		assocsComb_sorted<-assocsComb[species_sorted,species_sorted]#
+	}#
+#
+	# värit: 1 nollat = valkonen, 2-4 negat = siniset, 5-7 posit = punaset#
+	colrs<-c("#ffffff", # valkonen#
+			"#b8dcff","#1a8cff","#004d99",	# siniset#
+			"#ffdcc4","#ff7214","#b34700")	# punaset#
+#
+	### all results for appendix#
+	##############################
+	if (whichfigs=="append") {#
+		if (mod==2) {#
+			pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=10,height=2.5)#
+				par(family="serif")#
+				image(z=assocsComb,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb), ny=ncol(assocsComb), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+				axis(side=2, at=seq(0,1,length.out=length(species[primSp])), labels=t(t(species[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+			dev.off()#
+		} else {#
+			pdf(file=paste("figs/assocs_all_m",mod,".pdf",sep=""),bg="transparent",width=10,height=10) # appendix#
+				par(family="serif")#
+				image(z=assocsComb_sorted,col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted), ny=ncol(assocsComb_sorted), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted)), labels=t(t(species_sorted)), las=2, cex.axis=0.75)#
+			dev.off()#
+		}#
+	}#
+#
+	### selected results for ms#
+	#############################
+	if (whichfigs=="ms") {#
+		if (mod==2) {#
+			assocsComb_sorted[rownames(assocsComb_sorted)=="triabi",colnames(assocsComb_sorted)=="triabi"]<-1#
+			assocsComb_sorted[rownames(assocsComb_sorted)=="trifus",colnames(assocsComb_sorted)=="trifus"]<-1#
+			assocsComb_sorted[rownames(assocsComb_sorted)=="fompin",colnames(assocsComb_sorted)=="fompin"]<-1#
+			assocsComb_sorted[rownames(assocsComb_sorted)=="skeamo",colnames(assocsComb_sorted)=="skeamo"]<-1#
+		} else {#
+			diag(assocsComb_sorted)<-1#
+		}#
+#
+		# select species, for which R2>0.05#
+		load(file=paste("preds/predT2/colTjurs.RData",sep=""))#
+		selSp<-names(colTjurs[(colTjurs[,mod,3]>0.05),3,3])#
+#
+		# select primary colonisers#
+		primSp<-c(which(species_sorted=="triabi"),which(species_sorted=="trifus"),which(species_sorted=="skeamo"),which(species_sorted=="fompin"))#
+#
+		if (mod==2) {#
+			pdf(file=paste("figs/assocs_primCol_m",mod,".pdf",sep=""),bg="transparent",width=8.5,height=2.5)#
+				par(family="serif")#
+				image(z=assocsComb_sorted,col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted), ny=ncol(assocsComb_sorted), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[match(selSp,species_sorted)], labels=selSp, las=2, cex.axis=0.75, font.axis=2)#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[c(1:length(species_sorted))[-match(selSp,species_sorted)]], labels=species_sorted[-match(selSp,species_sorted)], las=2, cex.axis=0.75, font.axis=1)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted[primSp])), labels=t(t(species_sorted[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+			dev.off()#
+		} else {#
+			pdf(file=paste("figs/assocs_m",mod,".pdf",sep=""),bg="transparent",width=7,height=7) # appendix#
+				par(family="serif")#
+				image(z=assocsComb_sorted,col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted), ny=ncol(assocsComb_sorted), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted)), labels=species_sorted, las=2, cex.axis=0.75)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted)), labels=t(t(species_sorted)), las=2, cex.axis=0.75)#
+			dev.off()#
+#
+			pdf(file=paste("figs/assocs_selSp_m",mod,".pdf",sep=""),bg="transparent",width=7.5,height=7)#
+				par(family="serif")#
+				image(z=assocsComb_sorted[selSp,selSp],col=colrs,xlab="Subject species",ylab="Influencing species",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[selSp,selSp]), ny=ncol(assocsComb_sorted[selSp,selSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(selSp)), labels=selSp, las=2, cex.axis=0.75)#
+				axis(side=2, at=seq(0,1,length.out=length(selSp)), labels=selSp, las=2, cex.axis=0.75)#
+			dev.off()#
+#
+			pdf(file=paste("figs/assocs_primCol_m",mod,".pdf",sep=""),bg="transparent",width=8.5,height=2.5)#
+				par(family="serif")#
+				image(z=assocsComb_sorted[,primSp],col=colrs,xlab="Subject species",ylab="Primary colonisers",xaxt="n",yaxt="n",font.lab=2)#
+				grid(nx=nrow(assocsComb_sorted[,primSp]), ny=ncol(assocsComb_sorted[,primSp]), lty=1, lwd=0.5, col="#000000")#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[match(selSp,species_sorted)], labels=selSp, las=2, cex.axis=0.75, font.axis=2)#
+				axis(side=1, at=seq(0,1,length.out=length(species_sorted))[c(1:length(species_sorted))[-match(selSp,species_sorted)]], labels=species_sorted[-match(selSp,species_sorted)], las=2, cex.axis=0.75, font.axis=1)#
+				axis(side=2, at=seq(0,1,length.out=length(species_sorted[primSp])), labels=t(t(species_sorted[primSp])), las=2, cex.axis=0.75)#
+				mtext(side=3,text=paste("Model",mod),line=1,font=2,adj=0,cex=1.25)#
+			dev.off()#
+		}#
+	}#
+}
+rm(list = ls(all=TRUE)); gc()#
+get_os <- function() {#
+  if (.Platform$OS.type == "windows") { #
+    "win"#
+  } else if (Sys.info()["sysname"] == "Darwin") {#
+    "osx" #
+  } else if (.Platform$OS.type == "unix") { #
+    "unix"#
+  } else {#
+    stop("Unknown OS")#
+  }#
+}#
+OS<-get_os()#
+if (OS=="osx") {#
+	SETT<-"~/OneDrive - University of Helsinki/bakeoff/pipeline/SCRIPTS/mySettings.r"#
+}#
+if (OS=="win") {#
+	SETT<-"D:/HY-data/NORBERG/OneDrive - University of Helsinki/bakeoff/pipeline/SCRIPTS/mySettings.r"#
+}#
+source(SETT)#
+setwd(WD)#
+#
+ENS<-list(NULL,unlist(mod_names),c("HMSC3", "MARS1", "BRT1", "MISTN1", "GNN1"))#
+PRV<-list(NA, 0.1)#
+#
+for (e in 1:length(ENS)) {#
+	for (p in 1:length(PRV)) {#
+		opts<-list(modelEnsemble=ENS[[e]],prevaleceThreshold=PRV[[p]])		#
+		for (sz in 1:2) {#
+			PMS<-NA#
+			PMs<-list()#
+			for (d in 1:length(Sets)) {#
+				rm(list=ls()[!(ls() %in% saveobjs2)]); gc(); source(SETT); set_no <- Sets[d]; source(readdata)#
+				source(paste(RD,"expct.r",sep=""))#
+				rm(list=ls()[!(ls() %in% saveobjs2)]); gc(); source(SETT); set_no <- Sets[d]; source(readdata)#
+				source(paste(RD,"aucs.r",sep=""))#
+				rm(list=ls()[!(ls() %in% saveobjs2)]); gc(); source(SETT); set_no <- Sets[d]; source(readdata)#
+				source(paste(RD,"sqrtPrs.r",sep=""))#
+				rm(list=ls()[!(ls() %in% saveobjs2)]); gc(); source(SETT); set_no <- Sets[d]; source(readdata)#
+				source(paste(RD,"probBinRMSE.r",sep=""))#
+				rm(list=ls()[!(ls() %in% saveobjs2)]); gc(); source(SETT); set_no <- Sets[d]; source(readdata)#
+				source(paste(RD,"mse.r",sep=""))#
+				rm(list=ls()[!(ls() %in% saveobjs2)]); gc(); source(SETT); set_no <- Sets[d]; source(readdata)#
+				source(paste(RD,"spearm.r",sep=""))#
+				rm(list=ls()[!(ls() %in% saveobjs2)]); gc(); source(SETT); set_no <- Sets[d]; source(readdata)#
+				source(paste(RD,"sds.r",sep=""))#
+				rm(list=ls()[!(ls() %in% saveobjs2)]); gc(); source(SETT); set_no <- Sets[d]; source(readdata)#
+				source(paste(RD,"p50.r",sep=""))#
+				pms<-simplify2array(PMs)#
+				PMS<-rbind(PMS,pms)#
+			}#
+			PMS<-PMS[-1,]#
+#
+			filebody<-paste(RDfinal,dataN[sz],"/meta_analysis/PMS",sep="")#
+			if (is.numeric(prevThrs)) {#
+				filebody<-paste(filebody,"_spThr",prevThrs*100,sep="")#
+			}#
+			if (is.null(ensmblModels)!=TRUE) {#
+				if (length(ensmblModels)==nmodels) { ensmbl<-"all" }#
+				if (length(ensmblModels)!=nmodels) { ensmbl<-paste(ensmblModels,collapse="_") }#
+				filebody<-paste(filebody,"_ensmbl_",ensmbl,sep="")#
+			}#
+			save(PMS, file=paste(filebody,".RData",sep=""))#
+		}#
+	}#
+}
