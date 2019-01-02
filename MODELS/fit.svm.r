@@ -10,9 +10,6 @@ costs<-c(1,5,10,50,100)
 gammas<-c(0.001,0.01,0.1,1,10,100)
 
 ##########################################################################################
-# 29.11.18
-# HUOM TÄMÄ ON MUUTETTU, ENNUSTEET TEHTY ED. VERSIOLLA !
-##########################################################################################
 
 for (j in 1:3) {
 
@@ -35,37 +32,27 @@ for (j in 1:3) {
 # 						tunecontrol=tune.control(sampling="cross",cross=10),
 # 						ranges=list(gamma=gammas, cost=costs)))					
 
-	#svmf1 <- list()
-	svmf1 <- vector("list", nsp) 
+	svmf1 <- list()
 	if (j==1) { sT<-Sys.time() }
 	for (k in 1:nsp) {
 		tuneResult <- NULL
-		tuneResult <- try(tune(svm, 
-							   sp ~ ., 
-							   data=DD_t_svm[[k]], 
-							   kernel="polynomial", 
-							   degree=2,
-							   scale=FALSE,
-							   probability=TRUE,
-							   type='eps-regression',
-							   tunecontrol=tune.control(sampling="cross",
-							   							cross=10),
-							   ranges=list(gamma=gammas, 
-							   			   cost=costs)))		
+		tuneResult <- try(tune(svm, sp ~ ., data=DD_t_svm[[k]],
+						scale=FALSE,probability=TRUE,
+						type='eps-regression',
+						tunecontrol=tune.control(sampling="cross",cross=10),
+						ranges=list(gamma=gammas, cost=costs)))		
 
 		if (inherits(tuneResult,"tune")) {	
 			svmf1[[k]]<-tuneResult$best.model
-		} 
-		#else {
-		#	svmf1[[k]]<-NULL	
-		#}
+		} else {
+			svmf1[[k]]<-NULL	
+		}
 	}
 
 	if (j==1) {
 		eT<-Sys.time()
 		comTimes<-eT-sT
 	}
-
 	save(svmf1, file=file.path(FD,set_no,paste("svm1_",j,"_",dataN[sz],".RData",sep="")))
 	if (j==1) {
 		save(comTimes, file=file.path(FD,set_no,paste("comTimes_SVM1_",dataN[sz],".RData",sep="")))
