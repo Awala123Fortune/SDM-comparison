@@ -1,10 +1,10 @@
-##########################################################################################
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # READ DATA
-##########################################################################################
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 setwd(DD)
 
 # select random samples from the whole training set
-##########################################################################################
+#-----------------------------------------------------------------------------------------
 if ( !file.exists(paste("siteSamps_",Sets[d],".mat",sep="")) | !file.exists(paste("spSel_",Sets[d],".csv",sep="")) ) { 
 	set.seed(7); randSamp300<-sample(1:600,300,replace=F)
 	set.seed(7); randSamp150<-sample(randSamp300,150,replace=F)
@@ -39,14 +39,11 @@ samp <- siteSamps[[sz]]
 
 
 # training
-##########################################################################################
-y_train<-list()
-y_train_common<-list()
-x_train<-list()
-s_train<-list()
-#y_train_full<-list()
-#x_train_full<-list()
-#s_train_full<-list()
+#-----------------------------------------------------------------------------------------
+y_train <- list()
+y_train_common <- list()
+x_train <- list()
+s_train <- list()
 
 for (i in 1:3) {
 
@@ -88,7 +85,7 @@ for (i in 1:3) {
 
 
 # validation
-##########################################################################################
+#-----------------------------------------------------------------------------------------
 y_valid<-list()
 y_valid_common<-list()
 x_valid<-list()
@@ -123,11 +120,11 @@ for (i in 1:3) {
 }
 
 # lists
-##########################################################################################
-DD_t<-list()
-DD_v<-list()
-DD_t_common<-list()
-DD_v_common<-list()
+#-----------------------------------------------------------------------------------------
+DD_t <- list()
+DD_v <- list()
+DD_t_common <- list()
+DD_v_common <- list()
 
 for (i in 1:3) {
 
@@ -168,7 +165,7 @@ for (i in 1:3) {
 
 }
 
-##########################################################################################
+#-----------------------------------------------------------------------------------------
 
 if (commSP) {
 
@@ -179,152 +176,6 @@ if (commSP) {
 
 }
 
-##########################################################################################
-
-# save(y_train, 
-# 	file = file.path(DD,
-# 					'otso', 
-# 					paste0('y_train_', 
-# 					dataN[sz], 
-# 					'_', 
-# 					Sets[d], 
-# 					'.RData')))
-# save(y_valid, 
-# 	file = file.path(DD,
-# 					'otso', 
-# 					paste0('y_valid_', 
-# 					dataN[sz], 
-# 					'_', 
-# 					Sets[d], 
-# 					'.RData')))
-# save(x_train, 
-# 	file = file.path(DD,
-# 					'otso', 
-# 					paste0('x_train_', 
-# 					dataN[sz], 
-# 					'_', 
-# 					Sets[d], 
-# 					'.RData')))
-# save(x_valid, 
-# 	file = file.path(DD,
-# 					'otso', 
-# 					paste0('x_valid_', 
-# 					dataN[sz], 
-# 					'_', 
-# 					Sets[d], 
-# 					'.RData')))
-
-# for (i in 1:3) {
-# 	write.table(y_train[[i]], 
-# 				file = file.path(DD, 
-# 								'otso', 
-# 								paste0('y_train_', 
-# 										dataN[sz], 
-# 										'_', 
-# 										Sets[d], 
-# 										'_', 
-# 										i, 
-# 										'.csv')), 
-# 								sep=',', 
-# 								row.names=F, 
-# 								col.names=F  )
-# 	write.table(y_valid[[i]], 
-# 				file = file.path(DD, 
-# 								'otso', 
-# 								paste0('y_valid_', 
-# 										dataN[sz], 
-# 										'_', 
-# 										Sets[d], 
-# 										'_', 
-# 										i, 
-# 										'.csv')), 
-# 								sep=',', 
-# 								row.names=F, 
-# 								col.names=F )
-# 	write.table(x_train[[i]], 
-# 				file = file.path(DD, 
-# 								'otso', 
-# 								paste0('x_train_', 
-# 										dataN[sz], 
-# 										'_', 
-# 										Sets[d], 
-# 										'_', 
-# 										i, 
-# 										'.csv')), 
-# 								sep=',', 
-# 								row.names=F, 
-# 								col.names=F )
-# 	write.table(x_valid[[i]], 
-# 				file = file.path(DD, 
-# 								'otso', 
-# 								paste0('x_valid_', 
-# 										dataN[sz], 
-# 										'_', 
-# 										Sets[d], 
-# 										'_', 
-# 										i, 
-# 										'.csv')), 
-# 								sep=',', 
-# 								row.names=F, 
-# 								col.names=F )
-# }
-
-##########################################################################################
-
 setwd(WD)
 
-##########################################################################################
-
-# interp training data
-# y_i_t <- y_I_train
-# colnames(y_i_t) <- rep("sp", times=ncol(y_i_t))
-# 
-# interp valid data
-# y_i_v <- y_I_valid
-# colnames(y_i_v) <- rep("sp", times=ncol(y_i_v))
-# 
-# covariates
-# x_i_t <- X_I_train
-# x_i_v <- X_I_valid
-# 
-# spat
-# s_i_t<-S_I_train
-# s_i_v<-S_I_valid
-# 
-# extrap training data
-# y_e_t <- y_E_train
-# colnames(y_e_t) <- rep("sp", times=ncol(y_e_t))
-# 
-# extrap valid data
-# y_e_v <- y_E_valid
-# colnames(y_e_v) <- rep("sp", times=ncol(y_e_v))
-# 
-# covariates
-# x_e_t <- X_E_train
-# x_e_v <- X_E_valid
-# 
-# spat
-# s_e_t<-S_E_train
-# s_e_v<-S_E_valid
-# 
-
-
-# Y_train<-list()
-# Y_valid<-list()
-# for (i in 1:3) {
-# 	Y_train[[i]]<-y_train[[i]][,which(colSums(y_valid[[i]])!=0 & colSums(y_train[[i]])!=0,arr.ind=T)]
-# 	Y_valid[[i]]<-y_valid[[i]][,which(colSums(y_valid[[i]])!=0 & colSums(y_train[[i]])!=0,arr.ind=T)]
-# }
-# rm(y_train)
-# rm(y_valid)
-# y_train<-Y_train
-# y_valid<-Y_valid
-# rm(Y_train)
-# rm(Y_valid)
-
-# new Y data files for HMSC-matlab
-# for (i in 1:3) {
-# 	write.table(y_train[[i]],file=paste("Yy_",set_no,"_",i,"_",dataN[sz],"_train.csv",sep=""),col.names=FALSE,row.names=FALSE,sep=",")
-# 	write.table(y_valid[[i]],file=paste("Yy_",set_no,"_",i,"_",dataN[sz],"_valid.csv",sep=""),col.names=FALSE,row.names=FALSE,sep=",")
-# 	}
 

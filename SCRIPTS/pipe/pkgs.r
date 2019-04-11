@@ -1,6 +1,6 @@
-##########################################################################################
-# PACKAGES
-##########################################################################################
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# INSTALL PACKAGES
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 install.packages(c("pROC",
 				   "mvabund",
@@ -26,21 +26,21 @@ install.packages(c("pROC",
 				   "kmed",
 				   "xgboost"))
 require(devtools)
-install_github("davharris/mistnet2")
-install_github('BayesComm', 'goldingn')
+install_github('davharris/mistnet2')
+install_github('goldingn/BayesComm')
+install_url('https://cran.r-project.org/src/contrib/Archive/BayesLogit/BayesLogit_0.6.tar.gz')
+install_github('hmsc-r/HMSC')
 
-if (OS=="osx"|OS=="unix") { 
+if (OS == "osx" | OS == "unix") { 
 	install.packages("doMC")
 	install.packages(paste(WD,"MODELS/mvpart_pkg/mvpart_1.6-2.tar",sep=''), 
 					 repos = NULL, 
-					 type="source") 
+					 type = "source") 
 	}
-if (OS=="win") {
+if (OS == "win") {
 	install.packages("doParallel")
 	install.packages(paste(WD,"MODELS/mvpart_pkg/mvpart_1.6-2.zip",sep=''), 
 					 repos = NULL, 
-					 type="source")
+					 type = "source")
 	}
 
-
-##########################################################################################

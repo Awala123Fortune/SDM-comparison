@@ -1,9 +1,9 @@
-##########################################################################################
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # PATHS, ASSIGNMENTS, ETC.
-##########################################################################################
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-dataN<-c(150,300,600)			# data sizes
-REPs<-100						# no. of prediction replicates
+dataN <- c(150,300,600)			# data sizes
+REPs <- 100						# no. of prediction replicates
 dszs <- c(1, 3)
 
 Sets <- c("birds","butterfly","plant","trees","vegetation")
@@ -11,7 +11,7 @@ betaInds<-c("sim", "nest", "sor")
 
 
 # basic working directories
-##########################################################################################
+#-----------------------------------------------------------------------------------------
 WD <- file.path(pth,"bakeoff","pipeline")
 
 # scripts directory
@@ -24,21 +24,13 @@ DD <- file.path(WD,"DATA")
 MD <- file.path(WD,"MODELS")
 
 # model fits directory
-#FD <- file.path(WD,"FITS")
+FD <- file.path(WD,"FITS")
 
 if (!commSP) {
 	FD <- file.path(WD,"FITS2")
 }
 if (commSP) {
-	FD <- file.path(WD,"FITS3")
-}
-
-# directory from where to read fits
-if (!commSP) {
-	FD2 <- "F:/FITS"
-}
-if (commSP) {
-	FD2 <- file.path(WD,"FITS3")
+	FD <- file.path(WD,"FITS_commSP")
 }
 
 # prediction scripts directory
@@ -56,66 +48,47 @@ RD2 <- file.path(WD,"RESULTS2")
 # final results directory
 RDfinal <- file.path(WD,"RESULTS_final")
 
-DIRS<-c(WD,DD,MD,FD,PD,PD2,RD,RD2,RDfinal)
+DIRS <- c(WD, DD, MD, FD, PD, PD2, RD, RD2, RDfinal)
 
 # read data
-##########################################################################################
 readdata <- file.path(SD, "read.data.r")
 
 # fit models
-##########################################################################################
 fitmodels <- file.path(SD, "pipe", "fit_models.r")
 
 # make predictions
-##########################################################################################
 makepreds <- file.path(SD, "pipe", "pred.r")
 
-# modify predictions, calculate performance measures, computation times
-##########################################################################################
-mod_commSP <- file.path(SD, "pipe", "mod_commSP.r")
-
-modpredsFolder <- file.path(SD,"pipe", "modify_preds")
-modpreds <- file.path(SD, "pipe", "mod_preds.r")
-
-pms <- file.path(SD, "pipe", "pms.r")
-pms_tbl <- file.path(SD,"pipe", "pms_tbl.r")
-pms_comb <- file.path(SD, "pipe", "pms_comb.r")
-pms_plot <- file.path(SD, "pipe", "pms_plot.r")
-
-mcmc2modpreds <- file.path(SD, "pipe", "calc_sp_occ_probs_MCMC2.r")
-calcConvergence <- file.path(SD, "pipe", "calc_converg.r")
-
-compt_times <- file.path(SD, "pipe", "compt_times.r")
-
-# save objects
-##########################################################################################
-saveobjs<-c("sz","d","set_no","REPs","SETT","readdata","fitmodels","makepreds",
-			"modpredsFolder","modpreds","dataN","saveobjs","Sets","betaInds",
-			"pth","WD","SD","DD","MD","FD","PD","PD2","RD","RD2","RDfinal","MCMC2","commSP","intXs")
-saveobjs2<-c(saveobjs,"PMs","PMS","ENS","PRVthr")
+# objects saved when removing everything else from workspace
+#-----------------------------------------------------------------------------------------
+saveobjs <- c("sz","d","set_no","REPs","SETT","readdata","fitmodels","makepreds",
+			  "modpredsFolder","modpreds","dataN","saveobjs","Sets","betaInds",
+			  "pth","WD","SD","DD","MD","FD","PD","PD2","RD","RD2","RDfinal",
+			  "MCMC2","commSP","intXs")
+saveobjs2 <- c(saveobjs,"PMs","PMS","ENS","PRVthr")
 
 # models
-##########################################################################################
+#-----------------------------------------------------------------------------------------
 mod_names <- list("GAM1","GAM2",
-				"GLM1","GLM8","GLM12",
-				"GLM10","GLM11",
-				"GLM2","GLM3",
-				"GLM6",
-				"GLM9",
-				"MRTS1",
-				"GNN1",
-				"RF1",
-				"BRT1",
-				"XGB1",
-				"SVM1",
-				"MARS1","MARS2",
-				"GJAM1",
-				"SAM1",
-				"MISTN1",
-				"GLM7","BORAL1",
-				"BC1","BC2",
-				"GLM4","GLM5","GLM13",
-				"HMSC1","HMSC2","HMSC3","HMSC4")
+				  "GLM1","GLM8","GLM12",
+				  "GLM10","GLM11",
+				  "GLM2","GLM3",
+				  "GLM6",
+				  "GLM9",
+				  "MRTS1",
+				  "GNN1",
+				  "RF1",
+				  "BRT1",
+				  "XGB1",
+				  "SVM1",
+				  "MARS1","MARS2",
+				  "GJAM1",
+				  "SAM1",
+				  "MISTN1",
+				  "GLM7","BORAL1",
+				  "BC1","BC2",
+				  "GLM4","GLM5","GLM13",
+				  "HMSC1","HMSC2","HMSC3","HMSC4")
 mod_names2 <- c(rep("GAM",2),
 				rep("GLM",9),
 				"MRTS",
@@ -154,13 +127,13 @@ mod_names3 <- c("GAM","GAMspat1",
 				"BC1","BC2",
 				"hmsc1","hmsc2","hmsc1_inXs",
 				"hmsc1","hmsc2","hmsc3","hmsc1_inXs")
-#cbind(mod_names,mod_names2,mod_names3)
-nmodels<-length(mod_names)
+# cbind(mod_names,mod_names2,mod_names3)
+nmodels <- length(mod_names)
 models <- 1:nmodels
-nfrmwrks<-length(unique(mod_names2))
+nfrmwrks <- length(unique(mod_names2))
 
 # predictions
-##########################################################################################
+#-----------------------------------------------------------------------------------------
 pred_names	<-	list("gam1_PAs_","gam_spat1_PAs_",
 				"glm1_PAs_","glm1b_PAs_","glm1_intXs_PAs_",
 				"glmnet1_PAs_","glmnet1b_PAs_",
@@ -209,35 +182,9 @@ mod_names_bayes <- list("GJAM1",
 
 names(pred_names_bayes) <- mod_names_bayes
 								 
-##########################################################################################
 
 if (length(mod_names)!=length(pred_names)) {
 	stop("Prediction objects and their names are of different size")
-} #else {
-	#print(cbind(mod_names,mod_names2,mod_names3,pred_names))
-#}
-
-# MODEL FEATURES
-##########################################################################################
-feats<-read.csv2(file.path(DD,"feats.csv"),header=T)
-rownames(feats)<-feats[,1]
-feats<-feats[unlist(mod_names),]
-
-PMnames		<-	c("accuracy1","discrimination1","sharpness1","calibration1",
-				"accuracy2site","accuracy3beta1","accuracy3beta2","accuracy3beta3",
-				"discrimination2site","discrimination3beta1","discrimination3beta2","discrimination3beta3",
-				"sharpness2site","sharpness3beta1","sharpness3beta2","sharpness3beta3",
-				"calibration2site","calibration3beta1","calibration3beta2","calibration3beta3")
-minTomaxBest <- c("accuracy1","sharpness1","calibration1",
-				"accuracy2site","accuracy3beta1","accuracy3beta2","accuracy3beta3",
-				"sharpness2site","sharpness3beta1","sharpness3beta2","sharpness3beta3",
-				"calibration2site","calibration3beta1","calibration3beta2","calibration3beta3")
-
-minIsBest1<-matrix(0,nrow=length(PMnames))
-rownames(minIsBest1)<-PMnames
-minIsBest1[minTomaxBest,]<-1
-minIsBest1<-cbind(rownames(minIsBest1),minIsBest1)
-if (!file.exists(file.path(RDfinal,"minIsBest1.csv"))) {
-	write.table(minIsBest1,file=file.path(RDfinal,"minIsBest1.csv"),sep=",",row.names=F,col.names=F)					
 }
-##########################################################################################
+
+#-----------------------------------------------------------------------------------------

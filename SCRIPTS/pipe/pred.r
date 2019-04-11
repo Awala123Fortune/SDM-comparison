@@ -1,6 +1,6 @@
-##########################################################################################
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # GET PREDICTIONS
-##########################################################################################
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 if (MCMC2) {
   # HMSC
@@ -16,20 +16,6 @@ if (MCMC2) {
   source(SETT)
   source(readdata)
   source(paste(PD, "predict.hmsc.ss.r", sep = ""))
-
-  # HMSC
-  rm(list = ls()[!(ls() %in% saveobjs)])
-  gc()
-  source(SETT)
-  source(readdata)
-  source(paste(PD, "predict.hmsc.all.intXs.r", sep = ""))
-
-  # HMSC
-  rm(list = ls()[!(ls() %in% saveobjs)])
-  gc()
-  source(SETT)
-  source(readdata)
-  source(paste(PD, "predict.hmsc.ss.intXs.r", sep = ""))
   
   # GJAMS
   rm(list = ls()[!(ls() %in% saveobjs)])
@@ -254,33 +240,25 @@ source(SETT)
 source(readdata)
 source(file.path(PD, "predict.glm.r"))
 
-# ssHMSC
+# GLMnet
 rm(list = ls()[!(ls() %in% saveobjs)])
 gc()
 source(SETT)
 source(readdata)
-source(paste(PD, "predict.hmsc.ss.r", sep = ""))
+source(file.path(PD, "predict.glmnet.r"))
 
-# HMSC
+# ssHMSC
 rm(list = ls()[!(ls() %in% saveobjs)])
 gc()
 source(SETT)
 source(readdata)
 source(paste(PD, "predict.hmsc.all.r", sep = ""))
 
-# HMSC intXs
+# HMSC
 rm(list = ls()[!(ls() %in% saveobjs)])
 gc()
 source(SETT)
 source(readdata)
-source(paste(PD, "predict.hmsc.all.intXs.r", sep = ""))
+source(paste(PD, "predict.hmsc.ss.r", sep = ""))
 
-# ssHMSC intXs
-rm(list = ls()[!(ls() %in% saveobjs)])
-gc()
-source(SETT)
-source(readdata)
-source(paste(PD, "predict.hmsc.ss.intXs.r", sep = ""))
-
-
-##########################################################################################
+#-----------------------------------------------------------------------------------------
