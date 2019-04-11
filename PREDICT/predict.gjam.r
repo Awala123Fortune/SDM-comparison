@@ -8,23 +8,24 @@ require(gjam)
 
 for (j in 1:3) {	
   
-	load(file=file.path(FD2,
-						set_no,
-						paste("no0sp_GJAM_",
-							  j,
-							  "_",
-							  dataN[sz],
-							  ".RData",sep="")))
-								  
-	load(file=file.path(FD2,
-						set_no,
-						paste("gjam1_",
-							  j,
-							  "_",
-							  dataN[sz],
-							  ".RData",
-							  sep="")))
+	load(file = file.path(FD2,
+						  set_no,
+						  paste0("no0sp_GJAM_",
+							     j,
+							     "_",
+							     dataN[sz],
+							     ".RData")))
 
+    modelfile <- file.path(FD2, set_no, paste0("gjam1_",
+                                               j,
+                                               "_",
+                                               dataN[sz]))
+    if (MCMC2) {
+        modelfile <- paste0(modelfile, "_MCMC2")
+    }		
+    
+    load(file = paste0(modelfile, ".RData"))
+								  
 	gjamMod <- gjam1
 	Xv <- x_valid[[j]][,-1]
 	colnames(Xv) <- letters[1:ncol(Xv)]

@@ -8,26 +8,28 @@ require(BayesComm)
 
 for (j in 1:3) {	
 	if (!commSP) {
-		load(file=file.path(FD2,
-							set_no,
-							paste0("no0sp_BC_",
-								  j,
-								  "_",
-								  dataN[sz],
-								  ".RData")))
+		load(file = file.path(FD2,
+							  set_no,
+							  paste0("no0sp_BC_",
+								     j,
+								     "_",
+								     dataN[sz],
+								     ".RData")))
   	}
   	
 	for (m in 1:2) {
-	
-		load(file=file.path(FD2,
-							set_no,
-							paste0("bc",
-								  m,
-								  "_",
-								  j,
-								  "_",
-								  dataN[sz],
-								  ".RData")))
+
+        modelfile <- file.path(FD2, set_no, paste0("bc",
+                                                   m,
+                                                   "_",
+                                                   j,
+                                                   "_",
+                                                   dataN[sz]))
+		if (MCMC2) {
+			modelfile <- paste0(modelfile, "_MCMC2")
+		}		
+		
+		load(file = paste0(modelfile, ".RData"))
 
 		if (m==1) { bc <- bc1}
 		if (m==2) { bc <- bc2}

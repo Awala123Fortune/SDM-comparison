@@ -29,7 +29,7 @@ for (m in 1:ms) {
 		if (MCMC2) {
 		  predFile <- paste0(predFile, '_MCMC2')
 		}
-		preds <- read.csv(paste0(predFile, ".csv"), header=FALSE)
+		preds <- read.csv(paste0(predFile, ".csv"), header = FALSE)
 
 		nsp <- ncol(y_valid[[j]])
 		niter <- ncol(preds)/nsp
@@ -41,7 +41,7 @@ for (m in 1:ms) {
 		}
 
 		preds <- as.matrix(preds)
-		ss_hmsc_PAs <- array(NA,dim = list(nsite, nsp, niter))
+		ss_hmsc_PAs <- array(NA, dim = list(nsite, nsp, niter))
 		ss_hmsc_PAs[,1,] <- preds[, 1:niter]
 
 		for (sp in 2:nsp) {
@@ -68,9 +68,9 @@ for (m in 1:ms) {
 			filebody <- paste0(filebody, '_MCMC2')
 		}
 
-		save(ss_hmsc_PAs, file=file.path(PD2,
-										 set_no,
-										 paste0(filebody, ".RData")))
+		save(ss_hmsc_PAs, file = file.path(PD2,
+										   set_no,
+										   paste0(filebody, ".RData")))
 
 		rm(preds)
 		rm(ss_hmsc_PAs)

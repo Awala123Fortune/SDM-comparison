@@ -15,25 +15,26 @@ for (j in 1:3) {
 
 	for (m in 1:2) {
 
-		load(file=file.path(FD2,
-							set_no,
-							paste("brl",
-								  m,
-								  "_",
-								  j,
-								  "_",
-								  dataN[sz],
-								  ".RData",
-								  sep="")))
+        modelfile <- file.path(FD, set_no, paste0("brl",
+                                                   m,
+                                                   "_",
+                                                   j,
+                                                   "_",
+                                                   dataN[sz]))
+		if (MCMC2) {
+			modelfile <- paste0(modelfile, "_MCMC2")
+		}		
+		
+		load(file = paste0(modelfile, ".RData"))
 
-		if (m==1) { brl<-brl1 }
-		if (m==2) { brl<-brl2 }
+		if (m==1) { brl <- brl1 }
+		if (m==2) { brl <- brl2 }
 
 		Xv <- x_valid[[j]][,-1] 
 
 		linpred_boral <- boralPredict(brl, 
 									  newX = Xv, 
-									  predict.type="marginal")
+									  predict.type = "marginal")
 		boral_PAs <- linpred_boral
 		for(k in 1:dim(linpred_boral)[3]) {
 		    boral_PAs[,,k] <- matrix(rbinom(length(linpred_boral[,,k]), 
@@ -56,9 +57,9 @@ for (j in 1:3) {
 			filebody <- paste0(filebody, "_MCMC2")
 		}		
 
-		save(boral_PAs, file=file.path(PD2,
-	    	                           set_no,
-	        	                       paste0(filebody, ".RData")))
+		save(boral_PAs, file = file.path(PD2,
+	    	                             set_no,
+	        	                         paste0(filebody, ".RData")))
 	        	                       
 		rm(brl)
 		rm(linpred_boral)
