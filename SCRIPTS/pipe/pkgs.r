@@ -28,19 +28,18 @@ install.packages(c("pROC",
 require(devtools)
 install_github('davharris/mistnet2')
 install_github('goldingn/BayesComm')
-install_url('https://cran.r-project.org/src/contrib/Archive/BayesLogit/BayesLogit_0.6.tar.gz')
-install_github('hmsc-r/HMSC')
+
+install.packages(paste0(WD,"/sdmCom_0.1.tar.gz"), 
+                 repos = NULL, 
+                 type = "source") 
+install.packages(paste0(WD,"MODELS/mvpart_pkg/mvpart_1.6-2.tar"), 
+                 repos = NULL, 
+                 type = "source") 
 
 if (OS == "osx" | OS == "unix") { 
 	install.packages("doMC")
-	install.packages(paste(WD,"MODELS/mvpart_pkg/mvpart_1.6-2.tar",sep=''), 
-					 repos = NULL, 
-					 type = "source") 
 	}
 if (OS == "win") {
 	install.packages("doParallel")
-	install.packages(paste(WD,"MODELS/mvpart_pkg/mvpart_1.6-2.zip",sep=''), 
-					 repos = NULL, 
-					 type = "source")
 	}
 

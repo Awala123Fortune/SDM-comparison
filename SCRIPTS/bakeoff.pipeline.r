@@ -15,8 +15,8 @@ SETT <- file.path(SD, "settings.r")			# path to settings
 
 source(file.path(SD,"pipe", "get_os.r"))	# identify your OS
 OS <- get_os()
-source(file.path(SD,"pipe", "pkgs.r"))	# install required packages, 
-source(file.path(SD,"pipe", "dirs.r"))	# create directories (if don't exist),
+source(file.path(SD,"pipe", "pkgs.r"))	    # install required packages, 
+source(file.path(SD,"pipe", "dirs.r"))	    # create directories (if don't exist),
 source(file.path(SD,"pipe", "parall.r"))	# and define settings for parallel computing
 
 # 2 model fitting & predictions
@@ -416,7 +416,7 @@ if (commSP) {
     filebody <- paste0(filebody, '_commSP')
 }
 
-### plot 1, raw results
+### plot raw results
 pdf(file = paste0(filebody,".pdf"), 
     bg = "transparent", 
     width = 15, 
@@ -449,117 +449,6 @@ pdf(file = paste0(filebody,".pdf"),
 	}
 dev.off()
 
-### plot 2, with ranking and ordered PMs
-filebody <- paste0(filebody, '_2')
-
-ranking <- read.csv2(file = file.path(RDfinal, "ranking.csv"))
-rank_order <- as.character( ranking[order(ranking[,3]),1] )
-pms_names <- paste("PM", 
-                   rep(c(1, 2, "3sim", "3nest", "3sor"), each = 4), 
-                   rep(letters[1:4], times = 3))
-pms_ls <- pms_ls[pms_names]
-
-pdf(file = paste0(filebody, ".pdf"), 
-    bg = "transparent", 
-    width = 15, 
-    height = 15)
-	par(family = "serif", 
-	    mfrow = c(5,4), 
-	    mar = c(7,5,2,1))
-	for (p in 1:length(pms_ls)) {
-		plot(0, 0,
-	 	xlim = c(0, length(rank_order)),
-	 	ylim = c(min(resTBL[,pms_ls[[p]]], na.rm = TRUE), 
-	 	         max(resTBL[,pms_ls[[p]]], na.rm = TRUE)),
-	 	type = 'n',
-	 	xaxt = 'n',
-	 	ylab = names(pms_ls)[p],
-	 	xlab = "",
-	 	cex.axis = 2,
-	 	cex.lab = 2.25)
-		for (m in 1:length(rank_order)) {
-			lines(y = resTBL[which(resTBL$modelling.framework==rank_order[m]), pms_ls[[p]]],
-				  x = rep(m, times = length(resTBL[which(resTBL$modelling.framework==rank_order[m]), pms_ls[[p]]])),
-				  lwd = 2)
-			points(mean(resTBL[which(resTBL$modelling.framework==rank_order[m]), pms_ls[[p]]]),
-				   x = m, pch = 21, col = "black", bg = "red3", cex = 2)
-		}
-		axis(1, 1:length(rank_order), rank_order, las = 2)
-	}
-dev.off()
-
-### individual AUC plots
-tmp <- resTBL[,c(which(colnames(resTBL)=="modelling.framework"),
-                 which(colnames(resTBL)=="dsz"),
-                 which(colnames(resTBL)=="predtypes.j."),
-                 which(colnames(resTBL)=="set_no"),
-                 which(colnames(resTBL)=="discrimination_auc"))]
-tmp <- tmp[which(tmp$dsz=="150"),]
-tmp_i <- tmp[which(tmp$predtypes.j.=="interpol"),]
-tmp_e1 <- tmp[which(tmp$predtypes.j.=="extrapol"),]
-tmp_e2 <- tmp[which(tmp$predType=="extrapol2"),]
-tmp_i[,"discrimination1"] <- as.numeric(as.character(tmp_i[,"discrimination_auc"]))
-tmp_e1[,"discrimination1"] <- as.numeric(as.character(tmp_e1[,"discrimination_auc"]))
-tmp_e2[,"discrimination1"] <- as.numeric(as.character(tmp_e2[,"discrimination_auc"]))
-
-filebody <- paste0(RDfinal, "/fig_3b") 
-if (commSP) {
- filebody <- paste0(filebody, '_commSP')
-}
-
-for (d in 1:length(Sets)) {
-
-	pdf(file = paste0(filebody, "_", Sets[d], ".pdf"),
-		bg = "transparent",
-        width = 5,
-        height = 3.5)
-
-		par(family = "serif", mar = c(6, 4, 0.1, 0.1))
-
-		tmpPlot <- tmp_i[which(tmp_i$set_no==Sets[d]),]
-		rownames(tmpPlot) <- tmpPlot[,1]
-		plot(y = tmpPlot[rank_order, "discrimination_auc"],
-			 x = 1:length(rank_order),
-			 type = 'p',pch=21,
-			 col = "black",
-			 bg = "black",
-			 xlab = "",
-			 ylab = "Discrimination at species level",
-			 xaxt = "n",yaxt="n",
-			 ylim = c(0.5,0.9),
-			 cex = 1.5)
-		
-		tmpPlot <- tmp_e1[which(tmp_e1$set_no==Sets[d]),]
-		rownames(tmpPlot) <- tmpPlot[,1]
-		points(y = tmpPlot[rank_order,"discrimination_auc"],
-			   x = 1:length(rank_order),
-			   pch = 21,
-			   col = "black",
-			   bg = "grey",
-			   cex = 1.5)
-		
-		tmpPlot <- tmp_e2[which(tmp_e2$set_no==Sets[d]),]
-		rownames(tmpPlot) <- tmpPlot[,1]
-		points(y = tmpPlot[rank_order,"discrimination_auc"],
-			   x = 1:length(rank_order),
-			   pch = 21,
-			   col = "black",
-			   bg = "white",
-			   cex = 1.5)
-			   
-		axis(1,
-			 1:length(rank_order),
-			 rank_order,
-			 FALSE,
-			 las = 2)
-		axis(2,
-			 c(0.5, 0.7, 0.9),
-			 c(0.5, 0.7, 0.9),
-			 las = 2)
-			 
-	dev.off()
-
-}
 
 # 6.2 plot convergences
 #-----------------------------------------------------------------------------------------
