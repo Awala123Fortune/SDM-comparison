@@ -1,5 +1,5 @@
 ##########################################################################################
-# GENERALIZED ADDITIVE MODELS
+# GENERALIZED JOINT ATTRIBUTE MODELLING
 ##########################################################################################
 
 require(gjam)
@@ -15,16 +15,33 @@ if (set_no=="vegetation") {
 }
 
 if (MCMC2) {
-	set.seed(9)
+	set.seed(19)
 } else {
-	set.seed(7)	
+	set.seed(17)	
 }
 	
 rl <- list(r = 2, N = 3)
 rl2 <- list(r = 2, N = 2)
-ml  <- list(ng=50000, burnin=40000, typeNames='PA', holdoutN=0)
-ml_rl  	<- list(ng=50000, burnin=40000, typeNames='PA', holdoutN=0, reductList=rl)
-ml_rl2  <- list(ng=50000, burnin=40000, typeNames='PA', holdoutN=0, reductList=rl2)
+
+NG <- 50000
+BI <- 30000
+
+ml  <- list(ng=NG, 
+            burnin=BI, 
+            typeNames='PA', 
+            holdoutN=0)
+            
+ml_rl  	<- list(ng=NG, 
+                burnin=BI, 
+                typeNames='PA', 
+                holdoutN=0, 
+                reductList=rl)
+
+ml_rl2  <- list(ng=NG, 
+                burnin=BI, 
+                typeNames='PA', 
+                holdoutN=0, 
+                reductList=rl2)
 
 ##########################################################################################
 

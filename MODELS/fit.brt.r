@@ -5,14 +5,15 @@
 require(gbm)
 require(dismo)
 
-tcs<-c(2:5)
-lrs<-c(0.1,0.01,0.001,0.0001)
-vals<-cbind(rep(tcs,each=length(lrs)),rep(lrs,times=length(tcs)))
+tcs <- c(2:5)
+lrs <- c(0.1, 0.01, 0.001, 0.0001)
+vals <- cbind(rep(tcs, each = length(lrs)),
+              rep(lrs, times = length(tcs)))
 
 for (j in 1:3) {
 
 	nsp <- length(DD_t[[j]])
-	ncovar<-(ncol(x_train[[1]])-1)/2
+	ncovar <- (ncol(x_train[[1]])-1)/2
 	brt1 <- list()
 		
 	if (j==1) { sT<-Sys.time() }
